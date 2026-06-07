@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&family=DM+Sans:wght@400;500&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.35.0/dist/tabler-icons.min.css');
+
+:root {
+  --sage: #3e5c3a;
+  --sage-light: #5c7a56;
+  --leaf: #7aae72;
+  --harvest: #c8832a;
+  --harvest-light: #e8a94a;
+  --alert-red: #a32d2d;
+  --alert-amber: #854f0b;
+  --info-blue: #185fa5;
+
+  --leaf-bg: #eaf3de;
+  --leaf-text: #27500a;
+  --leaf-border: #97c459;
+
+  --amber-bg: #faeeda;
+  --amber-text: #633806;
+  --amber-border: #ef9f27;
+
+  --red-bg: #fcebeb;
+  --red-text: #791f1f;
+  --red-border: #f09595;
+
+  --blue-bg: #e6f1fb;
+  --blue-text: #0c447c;
+  --blue-border: #85b7eb;
+
+  --ff-display: 'Fraunces', serif;
+  --ff-body: 'DM Sans', sans-serif;
+  --ff-mono: 'DM Mono', monospace;
+
+  --gutter: 14px;
+  --card-pad: 11px 12px;
+  --card-radius: 12px;
+  --row-pad: 10px 12px;
+  --row-radius: 10px;
+  --grid-gap: 8px;
+  --row-gap: 7px;
+  --divider-margin: 10px var(--gutter);
+  --focus-ring: 0 0 0 2px var(--sage-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --leaf-bg: #173404;
+    --leaf-text: #c0dd97;
+    --leaf-border: #3b6d11;
+
+    --amber-bg: #412402;
+    --amber-text: #fac775;
+    --amber-border: #854f0b;
+
+    --red-bg: #501313;
+    --red-text: #f7c1c1;
+    --red-border: #a32d2d;
+
+    --blue-bg: #042c53;
+    --blue-text: #b5d4f4;
+    --blue-border: #185fa5;
+  }
+}
