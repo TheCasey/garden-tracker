@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feat/garden-tracker-creation
+
+jobs:
+  project-health:
+    name: Project health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate workflow YAML
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].each { |p| YAML.load_file(p); puts p }'
+
+      - name: Check repository hygiene
+        run: |
+          test -f .gitignore
+          test -f .env.example
+          test ! -f .env
+
+      - name: Run app checks when scaffold exists
+        run: |
+          if [ -f package.json ]; then
+            corepack enable
+            if [ -f pnpm-lock.yaml ]; then
+              pnpm install --frozen-lockfile
+              pnpm lint
+              pnpm test
+              pnpm build
+            elif [ -f package-lock.json ]; then
+              npm ci
+              npm run lint
+              npm test
+              npm run build
+            else
+              npm install
+              npm run lint
+              npm test
+              npm run build
+            fi
+          else
+            echo "No app scaffold yet; skipping install, lint, test, and build."
+          fi

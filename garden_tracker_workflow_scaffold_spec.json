@@ -1,0 +1,1140 @@
+{
+  "workflow_title": "Garden Tracker Creation Workflow",
+  "workflow_slug": "garden-tracker-creation",
+  "workflow_summary": "Create the Garden Tracker application from the existing product specification, design system, component library, and responsive mockup in bounded implementation phases with validation after each slice.",
+  "roles": {
+    "master-developer": "Own orchestration for the whole creation workflow: resolve PM decisions, keep phases narrow, write downstream prompts, review evidence, and advance state.",
+    "developer": "Implement only the active Garden Tracker phase and add focused automated tests for behavior changes.",
+    "tester": "Validate only the active phase with the declared build, unit, API, browser, interaction, accessibility, or manual evidence.",
+    "researcher": "Answer bounded technical blockers such as Gemini schema details, Cloudflare deployment fit, or backend service tradeoffs without implementing."
+  },
+  "validation": {
+    "read_first_max_items": 6,
+    "allowed_discovery": "Start with the listed planning or implementation files, then follow imports, routes, adjacent tests, and nearby config only as needed for the active phase.",
+    "tool_preferences": {
+      "build-health": ["shell"],
+      "unit-regression": ["shell"],
+      "api-smoke": ["shell", "curl"],
+      "browser-smoke": ["playwright", "browser-use"],
+      "interaction-smoke": ["playwright", "browser-use"],
+      "manual-qa": ["human"]
+    },
+    "evidence_defaults": {
+      "build-health": ["command output"],
+      "unit-regression": ["command output"],
+      "api-smoke": ["request or response summary", "command output"],
+      "browser-smoke": ["test output", "screenshot"],
+      "interaction-smoke": ["test output", "screenshot"],
+      "manual-qa": ["manual verification note"]
+    }
+  },
+  "coordination": {
+    "project_manager_role": "user",
+    "ask_pm_before_guessing": true,
+    "question_policy": "Ask the project manager before choosing an undocumented app framework, backend provider, auth/privacy posture, data retention rule, production domain, GitHub organization/repo visibility, CI requirements, UX copy outside the design docs, or acceptance criteria not covered by the existing files.",
+    "manual_assist_policy": "Ask the project manager for missing credentials, Gemini API keys, Supabase/Firebase/Cloudflare access, GitHub repo access, GitHub Actions secrets, seed-data confirmation, domain access, or human-only garden-state verification.",
+    "decision_recording": "Record PM answers and manual-assist results in the active run log; update phase docs or workflow-state.yaml when an answer changes durable scope.",
+    "subagents": {
+      "prefer_subagents": true,
+      "fork_context_default": false,
+      "one_downstream_agent_at_a_time": true,
+      "fallback": "When subagent spawning is unavailable, output the exact downstream prompt for a manual role chat.",
+      "model_policy": {
+        "master-developer": { "model": "gpt-5.5", "reasoning_effort": "xhigh" },
+        "developer": { "model": "gpt-5.4", "reasoning_effort": "high" },
+        "tester": { "model": "gpt-5.4", "reasoning_effort": "high" },
+        "researcher": { "model": "gpt-5.4", "reasoning_effort": "high" }
+      },
+      "escalation_rules": [
+        "Use gpt-5.5 high for cross-phase architecture, backend provider selection, Gemini structured-output debugging, security-sensitive storage work, or final integration review.",
+        "Use gpt-5.5 xhigh only for master-level recovery or high-risk acceptance decisions."
+      ]
+    }
+  },
+  "git": {
+    "enabled": true,
+    "create_branch": true,
+    "require_clean_start": false,
+    "branch_name": "feat/garden-tracker-creation",
+    "commit_mode": "manual_or_phase_acceptance_when_repo_exists",
+    "push_mode": "manual_when_repo_exists",
+    "pr_mode": "manual_when_repo_exists",
+    "track_runtime_files": false,
+    "tracked_paths": [
+      "workflow-plan.md",
+      "start-master-developer-chat.md",
+      "agents/*.md",
+      "phases/*/phase.md"
+    ],
+    "ignored_paths": [
+      "workflow-state.yaml",
+      "phases/*/run-log.md"
+    ]
+  },
+  "phases": [
+    {
+      "slug": "source-control-github-and-operations-setup",
+      "name": "Source Control, GitHub, and Operations Setup",
+      "goal": "Set up the project foundation around source control, GitHub repository management, CI, issue tracking, secret policy, and collaboration rules before application code starts.",
+      "depends_on": [],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Initialize Git if the workspace is still not a repository.",
+        "Create or connect the GitHub repository, establish branch strategy, and document protected-branch expectations.",
+        "Add baseline GitHub Actions workflows for install, lint, typecheck, tests, build, and optional preview deployment once the app scaffold exists.",
+        "Create project setup docs covering secrets, .env handling, issue labels, PR checklist, and phase acceptance policy.",
+        "Do not implement app features or choose backend-specific schemas in this phase."
+      ],
+      "deliverables": [
+        "Local Git repository initialized or connected to an existing repo",
+        "GitHub repository plan or created remote",
+        "Branch, PR, and issue workflow documentation",
+        "Baseline CI workflow placeholders or initial checks",
+        "Secret handling policy for Gemini, Cloudflare, Supabase/Firebase, and future GitHub Actions secrets"
+      ],
+      "files_to_touch": [
+        ".gitignore",
+        ".github/workflows/",
+        ".github/pull_request_template.md",
+        "README.md",
+        "docs/operations/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        ".gitignore",
+        ".env.example",
+        "01-design-system.md",
+        "02-component-library.md"
+      ],
+      "exit_criteria": [
+        "The project has a clear Git/GitHub operating model before feature work begins.",
+        "Secrets and .env files are excluded from source control and documented.",
+        "CI expectations are documented even if full app commands become active after Phase 2.",
+        "The PM has confirmed repo visibility, owner, and whether Codex should create/push the remote."
+      ],
+      "automated_test_expectation": "No app behavior tests are expected before the app scaffold exists; validate GitHub workflow syntax and documentation completeness where possible.",
+      "test_files": [
+        ".github/workflows/*.yml",
+        ".github/workflows/*.yaml"
+      ],
+      "test_cases": [
+        "GitHub workflow YAML parses.",
+        "CI placeholders do not reference non-existent scripts unless intentionally gated.",
+        ".env and local secret files are ignored.",
+        "PR template includes test evidence, manual verification, and phase acceptance sections."
+      ],
+      "no_test_rationale": "This phase is project-operations setup before application behavior exists; use workflow syntax checks, git status, and documentation review as validation.",
+      "validation_modes": ["code-review", "build-health", "manual-qa"],
+      "runtime_targets": [],
+      "evidence_required": ["code references", "command output", "manual verification note"],
+      "allowed_discovery": "Inspect only repository metadata, env examples, existing planning docs, and GitHub workflow files.",
+      "test_commands": ["git status --short --branch", "ruby -e 'require \"yaml\"; Dir[\".github/workflows/*.{yml,yaml}\"].each { |p| YAML.load_file(p); puts p }'"],
+      "manual_verification": [
+        "PM should confirm GitHub repo owner, repo name, visibility, and whether branch protection should be configured immediately."
+      ],
+      "pm_questions": [
+        "Should Codex initialize a new Git repository here and create/push a GitHub remote, or should this connect to an existing repo?",
+        "What GitHub owner and repository name should be used?",
+        "Should the repository be private or public?"
+      ],
+      "human_assistance": [
+        "Provide GitHub authentication or create the repository if the local gh/GitHub connector cannot create it directly.",
+        "Configure branch protection in GitHub settings if required before the first PR."
+      ],
+      "next_phase_inputs": [
+        "Git/GitHub operating model",
+        "CI and PR expectations",
+        "Secret handling policy"
+      ],
+      "agent_briefs": {
+        "master-developer": "Resolve GitHub setup before any feature implementation. If the PM wants to handle GitHub manually, record the answer and continue with local Git policy.",
+        "developer": "Set up operations files only; do not scaffold the app implementation in this phase.",
+        "tester": "Validate repository hygiene, workflow syntax where possible, and documentation clarity."
+      }
+    },
+    {
+      "slug": "stack-and-project-foundation",
+      "name": "Stack and Project Foundation",
+      "goal": "Create the initial application skeleton and lock the runtime, package, lint, test, and environment contract for the rest of the build.",
+      "depends_on": ["Phase 1: Source Control, GitHub, and Operations Setup"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Choose or confirm the frontend framework, package manager, TypeScript policy, test stack, and local dev command.",
+        "Create the app shell, config files, env validation, and placeholder routes without implementing feature behavior.",
+        "Keep backend provider integration, Gemini calls, and full UI composition out of this phase."
+      ],
+      "deliverables": [
+        "Runnable web app scaffold",
+        "Package scripts for dev, build, lint, unit tests, and browser tests",
+        "Environment variable schema aligned with .env.example",
+        "Project README or setup note for local startup"
+      ],
+      "files_to_touch": [
+        "package.json",
+        "src/",
+        "tests/",
+        ".env.example",
+        "README.md"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "01-design-system.md",
+        "02-component-library.md",
+        "garden_tracker_responsive_mockup.html",
+        ".env.example"
+      ],
+      "exit_criteria": [
+        "A developer can install dependencies, start the local app, and see a minimal Garden Tracker shell.",
+        "Build, lint, and the initial test command execute successfully.",
+        "The selected stack and unresolved PM decisions are recorded in the run log."
+      ],
+      "automated_test_expectation": "Add a minimal smoke test proving the app shell renders and the configured test runner works.",
+      "test_files": [
+        "tests/app-shell.spec.*",
+        "src/**/*.test.*"
+      ],
+      "test_cases": [
+        "The app shell renders Garden Tracker without runtime errors.",
+        "Environment validation reports missing required values clearly without exposing secrets."
+      ],
+      "validation_modes": ["build-health", "unit-regression", "browser-smoke"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["command output", "test output", "screenshot"],
+      "allowed_discovery": "Read the existing planning files and inspect generated framework files only as needed to wire scripts and smoke tests.",
+      "test_commands": ["npm run build", "npm test", "npm run test:e2e"],
+      "manual_verification": [],
+      "pm_questions": [
+        "Confirm the preferred app stack if the repo does not already imply one: Next.js, Vite React, or another web framework.",
+        "Confirm whether Supabase or Firebase should be the first production backend target.",
+        "Confirm whether the local-first prototype may use browser storage before the backend phase lands."
+      ],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Runnable app foundation",
+        "Documented commands",
+        "Confirmed backend direction or recorded PM blocker"
+      ],
+      "agent_briefs": {
+        "master-developer": "Resolve stack and backend direction before dispatching developer. Do not let phase 1 drift into feature implementation.",
+        "developer": "Bootstrap the project and prove the toolchain works; keep feature UI minimal.",
+        "tester": "Validate setup from a clean command path and capture the first browser screenshot."
+      }
+    },
+    {
+      "slug": "domain-model-seed-data-and-deterministic-engine",
+      "name": "Domain Model, Seed Data, and Deterministic Engine",
+      "goal": "Encode plants, logs, care metadata, seed garden state, and deterministic rule functions that future UI and backend phases depend on.",
+      "depends_on": ["Phase 2: Stack and Project Foundation"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Represent plants, garden logs, care rules, zones, statuses, heights, current seed metrics, and backlog task state in typed code.",
+        "Implement pure deterministic functions for next-water dates, container dryout, height-based staking warnings, pollination countdown states, harvest tally updates, and cantaloupe hammock trigger states.",
+        "Do not wire persistence, full UI, or Gemini calls in this phase."
+      ],
+      "deliverables": [
+        "Typed domain model and seed data copied from the June 6, 2026 spec",
+        "Pure deterministic garden rule engine",
+        "Unit tests for rule edge cases and seed-data integrity"
+      ],
+      "files_to_touch": [
+        "src/domain/",
+        "src/data/",
+        "src/lib/gardenRules.*",
+        "tests/domain/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "src/",
+        "tests/"
+      ],
+      "exit_criteria": [
+        "All plant seed records match the spec's real garden state.",
+        "Rule functions are pure, time-injectable, and covered by focused tests.",
+        "No AI or network dependency is needed for deterministic mutations."
+      ],
+      "automated_test_expectation": "Add focused unit tests for every deterministic rule and a seed-data integrity test for the current garden state.",
+      "test_files": [
+        "tests/domain/garden-rules.test.*",
+        "tests/domain/seed-data.test.*"
+      ],
+      "test_cases": [
+        "Watering computes next warning state from injected current time and AI care interval.",
+        "Pollination states transition across <48h, 48-72h, and >72h boundaries.",
+        "Tomatoes at or above 5 ft emit staking warnings while Beefsteak at 4.5 ft does not.",
+        "Cantaloupe Baby Set to Active Sizing emits hammock support task."
+      ],
+      "validation_modes": ["unit-regression", "build-health"],
+      "runtime_targets": [],
+      "evidence_required": ["command output"],
+      "allowed_discovery": "Follow generated domain imports and nearby tests only.",
+      "test_commands": ["npm test -- garden-rules", "npm test -- seed-data", "npm run build"],
+      "manual_verification": [
+        "PM should verify the seed-data snapshot if the live garden state has changed since June 6, 2026."
+      ],
+      "pm_questions": [
+        "Confirm whether seed data should remain fixed to June 6, 2026 for prototype parity or be updated before implementation begins."
+      ],
+      "human_assistance": [
+        "Provide updated plant metrics if the current garden state should replace the spec snapshot."
+      ],
+      "next_phase_inputs": [
+        "Stable typed domain model",
+        "Pure rule functions",
+        "Seed data consumed by UI and persistence"
+      ]
+    },
+    {
+      "slug": "local-persistence-and-repository-contract",
+      "name": "Local Persistence and Repository Contract",
+      "goal": "Create the persistence boundary for plants, garden logs, task state, chat messages, and AI patches so the UI can mutate data without knowing the final backend.",
+      "depends_on": ["Phase 3: Domain Model, Seed Data, and Deterministic Engine"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Define repository interfaces and a local implementation backed by browser storage or local database fixtures.",
+        "Implement CRUD for plants and garden logs, task state persistence, plant-scoped chat history, and AI patch application.",
+        "Keep production Supabase/Firebase implementation and Gemini network calls out of this phase."
+      ],
+      "deliverables": [
+        "Repository abstraction for plants, logs, tasks, chat messages, and patches",
+        "Local persistence adapter seeded from the domain fixtures",
+        "Tests proving local mutations persist and rehydrate"
+      ],
+      "files_to_touch": [
+        "src/repositories/",
+        "src/data/",
+        "src/lib/persistence.*",
+        "tests/repositories/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "src/domain/",
+        "src/data/",
+        "tests/domain/"
+      ],
+      "exit_criteria": [
+        "Routine mutations can be persisted and reloaded locally.",
+        "AI patch payloads can update allowed target fields through the same repository boundary.",
+        "The repository contract is ready for a later backend adapter."
+      ],
+      "automated_test_expectation": "Add unit or integration tests for repository CRUD, log append behavior, task persistence, chat scoping, and patch allow-list enforcement.",
+      "test_files": [
+        "tests/repositories/local-garden-repository.test.*"
+      ],
+      "test_cases": [
+        "Adding a watering log persists and rehydrates for one plant.",
+        "Harvest count increments atomically with a matching garden_logs entry.",
+        "Task checkbox state persists under the garden_tasks_state equivalent.",
+        "AI patches can update approved care-rule fields and reject unknown fields."
+      ],
+      "validation_modes": ["unit-regression", "build-health"],
+      "runtime_targets": [],
+      "evidence_required": ["command output"],
+      "allowed_discovery": "Follow domain and adapter imports only as needed.",
+      "test_commands": ["npm test -- repository", "npm run build"],
+      "manual_verification": [],
+      "pm_questions": [
+        "Confirm whether a no-login personal app is acceptable for the first production version or whether authentication must be added before backend persistence."
+      ],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Repository API",
+        "Local persistence behavior",
+        "Patch application contract"
+      ]
+    },
+    {
+      "slug": "design-system-and-app-shell-ui",
+      "name": "Design System and App Shell UI",
+      "goal": "Implement the Garden Tracker visual system, responsive shell, topbar, alert banner, sidebar, and view switching from the reference mockup.",
+      "depends_on": ["Phase 4: Local Persistence and Repository Contract"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Create global tokens, typography imports, dark-mode token overrides, Tabler icon loading, accessibility focus rules, and shell layout.",
+        "Implement topbar, nav tabs, persistent harvest hygiene alert, desktop sidebar, mobile view switching, and shell landmarks.",
+        "Do not build the full dashboard cards, plant detail content, or task behavior yet."
+      ],
+      "deliverables": [
+        "Design-token CSS implementation",
+        "Responsive app shell matching the design references",
+        "Initial navigation between Dashboard, Plant, and Tasks views"
+      ],
+      "files_to_touch": [
+        "src/styles/",
+        "src/components/AppShell.*",
+        "src/components/Topbar.*",
+        "src/components/AlertBanner.*",
+        "src/components/Sidebar.*",
+        "tests/ui/"
+      ],
+      "read_first": [
+        "01-design-system.md",
+        "02-component-library.md",
+        "garden_tracker_responsive_mockup.html",
+        "src/"
+      ],
+      "exit_criteria": [
+        "The app shell visually follows the organic-utilitarian design system.",
+        "Desktop shows the sidebar; mobile uses tabbed view switching without overlapping text.",
+        "The hygiene alert is persistent and non-dismissible."
+      ],
+      "automated_test_expectation": "Add browser or component tests proving shell landmarks, tab switching, sidebar breakpoint behavior, and persistent alert rendering.",
+      "test_files": [
+        "tests/ui/app-shell.spec.*",
+        "tests/ui/responsive-shell.spec.*"
+      ],
+      "test_cases": [
+        "Dashboard, Plant, and Tasks tabs switch the active view.",
+        "The hygiene alert is present on every view.",
+        "Sidebar is visible at desktop width and absent below the mobile breakpoint.",
+        "Keyboard focus is visible on interactive shell controls."
+      ],
+      "validation_modes": ["browser-smoke", "interaction-smoke", "build-health"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "screenshot", "command output"],
+      "allowed_discovery": "Start from design docs and generated shell components; inspect adjacent styling only as needed.",
+      "test_commands": ["npm run build", "npm run test:e2e -- app-shell"],
+      "manual_verification": [
+        "Compare one desktop and one mobile screenshot against the responsive mockup for obvious layout drift."
+      ],
+      "pm_questions": [],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Reusable shell components",
+        "Global design tokens",
+        "Responsive navigation foundation"
+      ]
+    },
+    {
+      "slug": "dashboard-plant-matrix-and-container-zone",
+      "name": "Dashboard Plant Matrix and Container Zone",
+      "goal": "Build the dashboard view using live seed data, reusable plant cards, plant rows, stat pills, quick-action controls, alert chips, and moisture dryout bars.",
+      "depends_on": ["Phase 5: Design System and App Shell UI"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Render Ground Plot cards and Container Zone rows from the domain data rather than hardcoded HTML.",
+        "Implement PlantCard, PlantRow, StatPill, QuickActionButton, AlertChip, and Moisture Dryout Bar components.",
+        "Wire plant selection and navigation only enough to open the selected plant in the existing shell."
+      ],
+      "deliverables": [
+        "Data-driven dashboard matrix",
+        "Container moisture indicators",
+        "Plant selection behavior and selected state"
+      ],
+      "files_to_touch": [
+        "src/components/PlantCard.*",
+        "src/components/PlantRow.*",
+        "src/components/MoistureDryoutBar.*",
+        "src/views/Dashboard.*",
+        "tests/ui/dashboard.spec.*"
+      ],
+      "read_first": [
+        "02-component-library.md",
+        "garden_tracker_responsive_mockup.html",
+        "src/domain/",
+        "src/repositories/",
+        "src/components/"
+      ],
+      "exit_criteria": [
+        "Dashboard renders all seed plants grouped by Ground Plot and Container Zone.",
+        "Status accents, stat pills, dryout bars, and quick-action buttons match the design specs.",
+        "Opening a plant selects the correct record without triggering child button navigation."
+      ],
+      "automated_test_expectation": "Add browser/component tests for data-driven dashboard rendering, plant selection, child button stop-propagation, and container dryout states.",
+      "test_files": [
+        "tests/ui/dashboard.spec.*",
+        "tests/components/plant-card.test.*"
+      ],
+      "test_cases": [
+        "All June 6 seed plants appear in the correct zone.",
+        "Container plants show moisture bars with low, mid, and high states from deterministic dryout input.",
+        "Clicking a plant opens/selects it; clicking a quick action does not open the plant detail by accident."
+      ],
+      "validation_modes": ["browser-smoke", "interaction-smoke", "unit-regression"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "screenshot", "command output"],
+      "allowed_discovery": "Inspect component and dashboard files plus immediate domain/repository imports only.",
+      "test_commands": ["npm test -- plant-card", "npm run test:e2e -- dashboard", "npm run build"],
+      "manual_verification": [
+        "Review desktop and mobile dashboard screenshots for text clipping and token drift."
+      ],
+      "pm_questions": [],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Reusable dashboard components",
+        "Plant selection behavior",
+        "Data-driven dashboard rendering"
+      ]
+    },
+    {
+      "slug": "plant-detail-care-metrics-and-milestones",
+      "name": "Plant Detail Care Metrics and Milestones",
+      "goal": "Build the plant detail view with selected-plant header, care rules grid, AI milestones, per-plant log summary, and responsive navigation behavior.",
+      "depends_on": ["Phase 6: Dashboard Plant Matrix and Container Zone"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Render selected plant details from repository data.",
+        "Implement care metrics, milestone list, back navigation, and sidebar active state.",
+        "Reserve the plant diagnostics chatbox for the later Gemini phase."
+      ],
+      "deliverables": [
+        "Data-driven plant detail view",
+        "Care metrics and AI milestone components",
+        "Mobile back navigation and desktop side-by-side behavior"
+      ],
+      "files_to_touch": [
+        "src/views/PlantDetail.*",
+        "src/components/CareGrid.*",
+        "src/components/MilestonePanel.*",
+        "src/components/Sidebar.*",
+        "tests/ui/plant-detail.spec.*"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "garden_tracker_responsive_mockup.html",
+        "src/views/Dashboard.*",
+        "src/domain/"
+      ],
+      "exit_criteria": [
+        "Selecting every plant shows the correct detail name, zone, status, metrics, and milestones.",
+        "Mobile back navigation returns to the dashboard cleanly.",
+        "Desktop sidebar selection stays synchronized with the active plant."
+      ],
+      "automated_test_expectation": "Add interaction tests for plant selection, mobile back behavior, care metric rendering, and sidebar active-state synchronization.",
+      "test_files": [
+        "tests/ui/plant-detail.spec.*"
+      ],
+      "test_cases": [
+        "Cherry Tomatoes detail shows 6 ft, near-yield status, and care metrics.",
+        "Switching from Cherry Tomatoes to Strawberry swaps the visible detail state.",
+        "Back navigation returns mobile users to Dashboard without losing selected plant."
+      ],
+      "validation_modes": ["browser-smoke", "interaction-smoke", "build-health"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "screenshot", "command output"],
+      "allowed_discovery": "Follow selected plant state, shell, and detail component imports only.",
+      "test_commands": ["npm run test:e2e -- plant-detail", "npm run build"],
+      "manual_verification": [
+        "Review one plant detail screenshot for desktop and mobile against the mockup."
+      ],
+      "pm_questions": [],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Selected plant detail surface",
+        "Care metrics rendering",
+        "Responsive plant navigation"
+      ]
+    },
+    {
+      "slug": "routine-log-mutations-and-task-state",
+      "name": "Routine Log Mutations and Task State",
+      "goal": "Wire deterministic quick actions and task checkboxes to repository mutations with instant UI updates and no AI dependency.",
+      "depends_on": ["Phase 7: Plant Detail Care Metrics and Milestones"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Implement Water, Harvest, Log, and task checkbox interactions through the repository.",
+        "Reflect next water calculations, harvest tallies, log rows, and task completion state immediately in the UI.",
+        "Keep specialized pollination, Black Tomato bloom, and Gemini diagnostics out of this phase."
+      ],
+      "deliverables": [
+        "Functional routine mutation controls",
+        "Inline or modal log-entry flow",
+        "Task view persisted from the backlog state",
+        "Tests for instant deterministic updates"
+      ],
+      "files_to_touch": [
+        "src/views/Dashboard.*",
+        "src/views/Tasks.*",
+        "src/components/QuickActionButton.*",
+        "src/components/TaskCheckbox.*",
+        "src/repositories/",
+        "tests/ui/routine-actions.spec.*"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "src/repositories/",
+        "src/domain/",
+        "src/views/"
+      ],
+      "exit_criteria": [
+        "Watering writes a Watering log, updates the next-water state, and marks the control done.",
+        "Harvest increments total_harvest_count and writes a garden log without invoking AI.",
+        "Task checkbox state persists across reloads.",
+        "Inline note entry writes a garden log for the active plant."
+      ],
+      "automated_test_expectation": "Add interaction tests and repository tests covering routine mutations, reload persistence, and no accidental AI/network calls.",
+      "test_files": [
+        "tests/ui/routine-actions.spec.*",
+        "tests/repositories/local-garden-repository.test.*"
+      ],
+      "test_cases": [
+        "Watering a plant adds a log and updates visible watering state instantly.",
+        "Harvesting Green Beans increments the harvest count and persists after reload.",
+        "Task checkbox toggles both visual state and persisted state.",
+        "Routine actions do not call the Gemini endpoint."
+      ],
+      "validation_modes": ["interaction-smoke", "unit-regression", "browser-smoke"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "screenshot", "command output"],
+      "allowed_discovery": "Inspect action handlers, repository methods, and task view files only as needed.",
+      "test_commands": ["npm test -- repository", "npm run test:e2e -- routine-actions", "npm run build"],
+      "manual_verification": [],
+      "pm_questions": [
+        "Confirm whether harvest entries should require a count/weight input immediately or allow one-tap default logging first."
+      ],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Working routine mutation path",
+        "Task persistence path",
+        "Log rendering and update behavior"
+      ]
+    },
+    {
+      "slug": "high-priority-garden-workflows",
+      "name": "High-Priority Garden Workflows",
+      "goal": "Implement the pollination tracker, Black Tomato bloom monitor, and persistent harvest hygiene behavior from the immediate backlog.",
+      "depends_on": ["Phase 8: Routine Log Mutations and Task State"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Build manual pollination tracking for squash and cucumber with 72-hour fruit-set countdown alerts.",
+        "Build Black Tomato Blooms Open milestone toggle that pushes a morning electric toothbrush pollination tip.",
+        "Verify the harvest hygiene alert is present across Ground Plot profiles and relevant dashboard/detail contexts."
+      ],
+      "deliverables": [
+        "Pollination tracker UI and state",
+        "Black Tomato bloom milestone toggle and dashboard tip",
+        "Ground Plot harvest hygiene alert behavior"
+      ],
+      "files_to_touch": [
+        "src/domain/gardenRules.*",
+        "src/views/Dashboard.*",
+        "src/views/PlantDetail.*",
+        "src/views/Tasks.*",
+        "tests/ui/high-priority-workflows.spec.*"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "src/domain/",
+        "src/views/Dashboard.*",
+        "src/views/PlantDetail.*"
+      ],
+      "exit_criteria": [
+        "Squash and cucumber pollination buttons set Manually Pollinated state and show the correct countdown chip.",
+        "Countdown warning states update across the 48h and 72h boundaries from deterministic time input.",
+        "Black Tomato bloom toggle creates the specified morning toothbrush pollination tip.",
+        "Ground Plot hygiene alert remains visible where required."
+      ],
+      "automated_test_expectation": "Add deterministic rule tests plus interaction tests for pollination countdown states, bloom toggle behavior, and hygiene alert coverage.",
+      "test_files": [
+        "tests/domain/garden-rules.test.*",
+        "tests/ui/high-priority-workflows.spec.*"
+      ],
+      "test_cases": [
+        "Pollination click creates a 72-hour armed alert for cucumber and squash.",
+        "48-hour and >72-hour pollination states render warning and danger chips respectively.",
+        "Black Tomato bloom toggle emits the morning-hour electric toothbrush tip.",
+        "Ground Plot plant detail pages show harvest hygiene guidance."
+      ],
+      "validation_modes": ["unit-regression", "interaction-smoke", "browser-smoke"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["command output", "test output", "screenshot"],
+      "allowed_discovery": "Stay within garden rules, affected views, and adjacent tests.",
+      "test_commands": ["npm test -- garden-rules", "npm run test:e2e -- high-priority-workflows", "npm run build"],
+      "manual_verification": [
+        "PM may verify the wording and urgency of the pollination and hygiene guidance in the live UI."
+      ],
+      "pm_questions": [
+        "Confirm exact dashboard tip copy for Black Tomato if the component library wording is insufficient."
+      ],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Specialized immediate-backlog workflows",
+        "Countdown rule coverage",
+        "Alert coverage across dashboard and detail"
+      ]
+    },
+    {
+      "slug": "medium-and-seasonal-alert-cycles",
+      "name": "Medium and Seasonal Alert Cycles",
+      "goal": "Implement staking, cantaloupe trellis training, dryout, and hammock trigger workflows from the remaining backlog.",
+      "depends_on": ["Phase 9: High-Priority Garden Workflows"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Add tomato support staking warning cycle for plants exceeding 5 feet.",
+        "Add cantaloupe trellis training alerts for the 3 ft and 1 ft vines.",
+        "Add cantaloupe hammock trigger when fruit logs transition from Baby Set to Active Sizing.",
+        "Refine container accelerated dryout warnings and task generation."
+      ],
+      "deliverables": [
+        "Medium-priority deterministic alert cycles",
+        "Seasonal cantaloupe trigger behavior",
+        "Task generation or task-surfacing updates",
+        "Tests for threshold and transition behavior"
+      ],
+      "files_to_touch": [
+        "src/domain/gardenRules.*",
+        "src/views/Dashboard.*",
+        "src/views/Tasks.*",
+        "tests/domain/garden-rules.test.*",
+        "tests/ui/alert-cycles.spec.*"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "src/domain/gardenRules.*",
+        "src/views/Tasks.*"
+      ],
+      "exit_criteria": [
+        "Cherry and Brandywine show support warnings while non-threshold plants do not.",
+        "Cantaloupe trellis guidance appears for current vine lengths.",
+        "Baby Set to Active Sizing transition creates a hammock support task.",
+        "Container dryout warnings match the defined percent thresholds."
+      ],
+      "automated_test_expectation": "Add unit and interaction tests for staking thresholds, cantaloupe task transitions, and container dryout alert thresholds.",
+      "test_files": [
+        "tests/domain/garden-rules.test.*",
+        "tests/ui/alert-cycles.spec.*"
+      ],
+      "test_cases": [
+        "5 ft and 6 ft tomato heights trigger support alerts.",
+        "4.5 ft Beefsteak does not trigger the >5 ft alert.",
+        "Cantaloupe Active Sizing state creates a hammock task once.",
+        "Dryout percentages >75 and >95 render warning and danger states."
+      ],
+      "validation_modes": ["unit-regression", "interaction-smoke", "build-health"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["command output", "test output", "screenshot"],
+      "allowed_discovery": "Keep changes within rule generation, dashboard/task surfacing, and nearby tests.",
+      "test_commands": ["npm test -- garden-rules", "npm run test:e2e -- alert-cycles", "npm run build"],
+      "manual_verification": [],
+      "pm_questions": [
+        "Confirm whether generated tasks should be auto-created in the Tasks view or displayed only as alert chips until the user acknowledges them."
+      ],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Complete deterministic backlog coverage",
+        "Task and alert behavior for seasonal workflows"
+      ]
+    },
+    {
+      "slug": "gemini-care-metadata-onboarding",
+      "name": "Gemini Care Metadata Onboarding",
+      "goal": "Implement the asynchronous Gemini structured JSON flow that generates plant care metadata during plant onboarding.",
+      "depends_on": ["Phase 10: Medium and Seasonal Alert Cycles"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Add server-side Gemini client wrapper and response-schema enforcement for PlantCareRules.",
+        "Build onboarding API route or action that compiles localized plant metadata and stores ai_care_metadata.",
+        "Add loading, error, retry, and fallback behavior without blocking deterministic CRUD."
+      ],
+      "deliverables": [
+        "Gemini PlantCareRules schema and client integration",
+        "Plant onboarding endpoint or server action",
+        "Persistence update for ai_care_metadata",
+        "Mocked tests for structured JSON success and failure paths"
+      ],
+      "files_to_touch": [
+        "src/ai/",
+        "src/api/",
+        "src/repositories/",
+        "tests/ai/",
+        "tests/api/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        ".env.example",
+        "src/repositories/",
+        "src/domain/"
+      ],
+      "exit_criteria": [
+        "Plant onboarding can request Gemini care rules asynchronously and save valid structured metadata.",
+        "Schema validation rejects malformed model output safely.",
+        "Deterministic plant creation remains responsive when AI is pending or unavailable."
+      ],
+      "automated_test_expectation": "Add mocked unit/API tests for Gemini request construction, schema validation, successful metadata persistence, malformed JSON rejection, and deterministic fallback behavior.",
+      "test_files": [
+        "tests/ai/gemini-care-rules.test.*",
+        "tests/api/plant-onboarding.test.*"
+      ],
+      "test_cases": [
+        "Request payload includes Columbia, TN micro-climate and planting context.",
+        "Valid PlantCareRules JSON is stored on the plant.",
+        "Missing required schema fields return a safe error without corrupting plant data.",
+        "Plant creation succeeds with pending AI metadata."
+      ],
+      "validation_modes": ["unit-regression", "api-smoke", "build-health"],
+      "runtime_targets": ["http://localhost:3000/api/plants"],
+      "evidence_required": ["command output", "request or response summary"],
+      "allowed_discovery": "Inspect AI, API, repository, and env validation files only.",
+      "test_commands": ["npm test -- gemini", "npm test -- plant-onboarding", "npm run build"],
+      "manual_verification": [
+        "A live Gemini smoke test is optional until the PM provides a real API key."
+      ],
+      "pm_questions": [
+        "Confirm the Gemini model names for text and multimodal routing if .env.example does not already specify final values.",
+        "Confirm whether live Gemini calls are allowed during local validation or should remain mocked until deployment."
+      ],
+      "human_assistance": [
+        "Provide a Gemini API key for live API smoke testing."
+      ],
+      "next_phase_inputs": [
+        "Gemini client wrapper",
+        "Validated care metadata storage",
+        "AI failure behavior"
+      ],
+      "agent_briefs": {
+        "researcher": "Use only if the team needs current Gemini structured-output API details or Cloudflare runtime compatibility clarification."
+      }
+    },
+    {
+      "slug": "plant-diagnostics-chat-and-ai-patches",
+      "name": "Plant Diagnostics Chat and AI Patches",
+      "goal": "Build the plant-scoped multimodal diagnostics chatbox, AI response rendering, and structured patch application flow.",
+      "depends_on": ["Phase 11: Gemini Care Metadata Onboarding"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Implement Plant Care Chatbox UI at the top of plant detail.",
+        "Submit prompt text and optional image through a diagnostics endpoint with plant history context.",
+        "Render scoped message history, attachments, AI responses, patch previews, and approved patch application.",
+        "Preserve deterministic UI updates after patch application without a full refresh."
+      ],
+      "deliverables": [
+        "Plant diagnostics chatbox component",
+        "Diagnostics endpoint with mocked Gemini multimodal support",
+        "Patch preview and allowed-field patch application",
+        "Tests for message scoping and patch behavior"
+      ],
+      "files_to_touch": [
+        "src/components/PlantDiagnosticsChat.*",
+        "src/views/PlantDetail.*",
+        "src/ai/",
+        "src/api/",
+        "src/repositories/",
+        "tests/ui/plant-diagnostics.spec.*",
+        "tests/api/plant-diagnostics.test.*"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "02-component-library.md",
+        "src/views/PlantDetail.*",
+        "src/ai/",
+        "src/repositories/"
+      ],
+      "exit_criteria": [
+        "User messages append immediately and are scoped to the selected plant.",
+        "Optional image attachments submit with the active plant_id and prompt.",
+        "AI responses render conversational text and patch blocks when patch_detected is true.",
+        "Allowed target_fields update the active plant and rerender affected care metrics and alerts."
+      ],
+      "automated_test_expectation": "Add mocked API and browser interaction tests for chat submission, plant-scoped histories, in-flight state, patch rendering, allowed patch application, and rejected patch fields.",
+      "test_files": [
+        "tests/ui/plant-diagnostics.spec.*",
+        "tests/api/plant-diagnostics.test.*"
+      ],
+      "test_cases": [
+        "Submitting a prompt immediately appends a user message and disables the send button while pending.",
+        "Switching plants swaps visible message history.",
+        "Patch-detected response renders a PATCH block and updates approved care fields.",
+        "Unknown patch fields are ignored or rejected with a safe message."
+      ],
+      "validation_modes": ["interaction-smoke", "api-smoke", "unit-regression", "browser-smoke"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "request or response summary", "screenshot"],
+      "allowed_discovery": "Stay within diagnostics chat, AI endpoint, repository patch code, and adjacent tests.",
+      "test_commands": ["npm test -- plant-diagnostics", "npm run test:e2e -- plant-diagnostics", "npm run build"],
+      "manual_verification": [
+        "PM should inspect the diagnostic UI with a realistic plant photo once a live Gemini key and upload path exist."
+      ],
+      "pm_questions": [
+        "Confirm whether AI patches should apply automatically after validation or require a user confirmation click."
+      ],
+      "human_assistance": [
+        "Provide a representative plant photo for live multimodal validation when available."
+      ],
+      "next_phase_inputs": [
+        "Plant-scoped diagnostics UI",
+        "Patch application path",
+        "Diagnostics API behavior"
+      ]
+    },
+    {
+      "slug": "production-backend-storage-and-security",
+      "name": "Production Backend, Storage, and Security",
+      "goal": "Replace or supplement local persistence with the selected production backend and secure storage for database records, logs, chat history, and uploaded images.",
+      "depends_on": ["Phase 12: Plant Diagnostics Chat and AI Patches"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Implement the selected backend adapter for plants, garden_logs, tasks, chat messages, and AI patches.",
+        "Create database migrations or service schema based on the spec's plants and garden_logs blueprint.",
+        "Add image storage upload path and access rules suitable for a personal garden app.",
+        "Do not deploy to Cloudflare yet."
+      ],
+      "deliverables": [
+        "Production repository adapter",
+        "Database schema or migration files",
+        "Storage bucket/path contract for uploaded diagnostics photos",
+        "Security/privacy notes and env documentation",
+        "Adapter tests with mocked service client or local emulator"
+      ],
+      "files_to_touch": [
+        "src/repositories/",
+        "src/db/",
+        "src/storage/",
+        ".env.example",
+        "tests/repositories/",
+        "tests/storage/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        ".env.example",
+        "src/repositories/",
+        "src/api/",
+        "src/ai/"
+      ],
+      "exit_criteria": [
+        "The repository boundary can run against the selected production backend.",
+        "Schema covers plants.ai_care_metadata and garden_logs with cascade behavior or equivalent.",
+        "Uploads have deterministic paths, size/type validation, and non-public access unless PM approves otherwise.",
+        "Local development can still run without production credentials via the local adapter or mocks."
+      ],
+      "automated_test_expectation": "Add adapter contract tests that run without real credentials, plus migration/schema validation where the chosen backend tooling supports it.",
+      "test_files": [
+        "tests/repositories/backend-adapter.test.*",
+        "tests/storage/uploads.test.*",
+        "tests/db/schema.test.*"
+      ],
+      "test_cases": [
+        "Plant CRUD and garden log append pass against the backend adapter contract.",
+        "AI metadata and patch fields persist with JSON structure intact.",
+        "Image uploads reject invalid file types or oversized payloads.",
+        "Missing backend credentials produce clear setup errors without leaking secrets."
+      ],
+      "validation_modes": ["unit-regression", "api-smoke", "build-health", "manual-qa"],
+      "runtime_targets": ["http://localhost:3000/api/plants", "http://localhost:3000/api/diagnostics"],
+      "evidence_required": ["command output", "request or response summary", "manual verification note"],
+      "allowed_discovery": "Inspect repository, API, storage, env, and migration files only.",
+      "test_commands": ["npm test -- backend-adapter", "npm test -- uploads", "npm run build"],
+      "manual_verification": [
+        "Live backend validation requires PM-provided Supabase/Firebase credentials and may remain pending if credentials are unavailable."
+      ],
+      "pm_questions": [
+        "Confirm final backend provider if it was not resolved in Phase 1.",
+        "Confirm whether uploaded plant photos should be private by default.",
+        "Confirm whether authentication is required for the personal app before production cutover."
+      ],
+      "human_assistance": [
+        "Provide backend project credentials, storage bucket configuration, and any required local service setup."
+      ],
+      "next_phase_inputs": [
+        "Production persistence path",
+        "Storage upload contract",
+        "Backend env requirements"
+      ]
+    },
+    {
+      "slug": "accessibility-responsive-and-visual-polish",
+      "name": "Accessibility, Responsive, and Visual Polish",
+      "goal": "Harden the complete UI against design-system drift, accessibility issues, mobile layout problems, and interaction regressions.",
+      "depends_on": ["Phase 13: Production Backend, Storage, and Security"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Audit and refine typography, tokens, borders, focus states, touch targets, text wrapping, dark mode, and responsive breakpoints.",
+        "Add accessibility attributes where missing and fix keyboard navigation defects.",
+        "Keep feature expansion out of this phase."
+      ],
+      "deliverables": [
+        "Responsive polish fixes",
+        "Accessibility fixes",
+        "Visual regression or screenshot coverage for key views",
+        "Reduced console/runtime warnings"
+      ],
+      "files_to_touch": [
+        "src/styles/",
+        "src/components/",
+        "src/views/",
+        "tests/ui/",
+        "tests/accessibility/"
+      ],
+      "read_first": [
+        "01-design-system.md",
+        "02-component-library.md",
+        "garden_tracker_responsive_mockup.html",
+        "src/styles/",
+        "tests/ui/"
+      ],
+      "exit_criteria": [
+        "Dashboard, Plant Detail, Tasks, and Diagnostics views are usable at mobile and desktop widths.",
+        "Text does not overlap or clip in core cards, rows, buttons, chat, task items, and alerts.",
+        "Keyboard focus and screen-reader labels meet the design-system accessibility rules.",
+        "Dark mode semantic tokens remain legible."
+      ],
+      "automated_test_expectation": "Add or update browser, screenshot, and accessibility tests for the full UI surface; no feature-only tests are required beyond regression coverage for fixes.",
+      "test_files": [
+        "tests/ui/responsive.spec.*",
+        "tests/accessibility/a11y.spec.*"
+      ],
+      "test_cases": [
+        "Core views render at mobile and desktop widths without overlapping text.",
+        "Interactive controls have accessible names and visible focus state.",
+        "Dark mode semantic alert and AI patch surfaces meet basic contrast expectations.",
+        "No console errors appear during the dashboard-to-detail-to-tasks flow."
+      ],
+      "validation_modes": ["browser-smoke", "interaction-smoke", "build-health"],
+      "runtime_targets": ["http://localhost:3000"],
+      "evidence_required": ["test output", "screenshot", "command output"],
+      "allowed_discovery": "Inspect styling, component markup, and tests required to fix visible/a11y defects only.",
+      "test_commands": ["npm run test:e2e -- responsive", "npm run test:e2e -- a11y", "npm run build"],
+      "manual_verification": [
+        "PM should review desktop and mobile screenshots for design acceptance."
+      ],
+      "pm_questions": [],
+      "human_assistance": [],
+      "next_phase_inputs": [
+        "Polished UI baseline",
+        "Responsive and a11y validation evidence"
+      ]
+    },
+    {
+      "slug": "cloudflare-deployment-and-operations",
+      "name": "Cloudflare Deployment and Operations",
+      "goal": "Prepare and validate Cloudflare-hosted production deployment with environment variables, secrets, domain routing, and operational checks.",
+      "depends_on": ["Phase 14: Accessibility, Responsive, and Visual Polish"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Configure the app for Cloudflare hosting using the selected runtime target.",
+        "Map local .env variables to Cloudflare secrets and environment groups.",
+        "Add deployment scripts or config, health checks, and production build documentation.",
+        "Do not perform destructive production changes without PM confirmation."
+      ],
+      "deliverables": [
+        "Cloudflare deployment configuration",
+        "Documented secrets and environment mapping",
+        "Production build command and deployment checklist",
+        "Smoke-tested preview or local Cloudflare runtime where credentials permit"
+      ],
+      "files_to_touch": [
+        "wrangler.toml",
+        "cloudflare/",
+        "package.json",
+        ".env.example",
+        "README.md",
+        "tests/deployment/"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        ".env.example",
+        "package.json",
+        "README.md"
+      ],
+      "exit_criteria": [
+        "Production build succeeds for the Cloudflare target.",
+        "Required secrets are documented and not committed.",
+        "Preview or local Cloudflare runtime loads the app and basic API routes where possible.",
+        "Custom garden subdomain cutover steps are documented for PM approval."
+      ],
+      "automated_test_expectation": "Add deployment config checks or smoke tests where the selected framework allows them; record a no-test rationale for any Cloudflare-only validation that needs credentials.",
+      "test_files": [
+        "tests/deployment/cloudflare-config.test.*"
+      ],
+      "test_cases": [
+        "Cloudflare config references the expected app entry and compatibility settings.",
+        "Required secrets are listed in documentation without secret values.",
+        "Production build output exists and app shell smoke test passes."
+      ],
+      "validation_modes": ["build-health", "api-smoke", "browser-smoke", "manual-qa"],
+      "runtime_targets": ["http://localhost:3000", "Cloudflare preview URL when available"],
+      "evidence_required": ["command output", "request or response summary", "screenshot", "manual verification note"],
+      "allowed_discovery": "Inspect deployment config, env docs, package scripts, and framework deployment docs only as needed.",
+      "test_commands": ["npm run build", "npm run test:e2e -- smoke"],
+      "manual_verification": [
+        "PM must approve subdomain, Cloudflare account target, and any production secret upload before cutover."
+      ],
+      "pm_questions": [
+        "Confirm the exact garden subdomain and Cloudflare account/zone target.",
+        "Confirm whether preview deployment is enough for this phase or whether production cutover should be attempted."
+      ],
+      "human_assistance": [
+        "Provide Cloudflare account, zone, subdomain, and deployment credentials or complete the manual dashboard steps."
+      ],
+      "next_phase_inputs": [
+        "Deployment configuration",
+        "Operations checklist",
+        "Preview or local production evidence"
+      ]
+    },
+    {
+      "slug": "final-acceptance-and-release-readiness",
+      "name": "Final Acceptance and Release Readiness",
+      "goal": "Run the complete Garden Tracker flow end to end, close documentation gaps, and prepare a release-ready handoff.",
+      "depends_on": ["Phase 15: Cloudflare Deployment and Operations"],
+      "role_sequence": ["developer", "tester"],
+      "scope": [
+        "Exercise dashboard, plant detail, routine logs, task state, deterministic alerts, Gemini onboarding, diagnostics chat, AI patches, backend persistence, and deployment smoke paths.",
+        "Fix only release-blocking defects and documentation gaps found during acceptance.",
+        "Record unresolved manual follow-ups instead of expanding scope."
+      ],
+      "deliverables": [
+        "End-to-end acceptance evidence",
+        "Release checklist and known limitations",
+        "Updated setup/deployment documentation",
+        "Final seed data and environment verification notes"
+      ],
+      "files_to_touch": [
+        "README.md",
+        "tests/e2e/",
+        "src/",
+        "workflow run logs"
+      ],
+      "read_first": [
+        "garden_tracker_spec.md",
+        "workflow-plan.md",
+        "README.md",
+        "tests/e2e/",
+        "src/"
+      ],
+      "exit_criteria": [
+        "A full user flow works from app load through plant selection, routine log mutation, task update, diagnostic prompt, optional patch, and persistence reload.",
+        "Build, unit, API, and browser test suites pass or have documented acceptable exclusions.",
+        "Manual PM acceptance items are recorded with concrete status.",
+        "Release documentation describes setup, env, deployment, and current limitations."
+      ],
+      "automated_test_expectation": "Add or update end-to-end tests for the complete critical path and rerun the relevant automated suite before acceptance.",
+      "test_files": [
+        "tests/e2e/garden-tracker-critical-path.spec.*",
+        "tests/api/*.test.*",
+        "tests/domain/*.test.*"
+      ],
+      "test_cases": [
+        "Dashboard load to plant detail to watering log to reload persistence.",
+        "Pollination tracker creates countdown alert and task visibility remains stable.",
+        "Diagnostics chat mocked response renders patch and updates care metric.",
+        "Production build serves the app shell and critical API routes."
+      ],
+      "validation_modes": ["unit-regression", "api-smoke", "browser-smoke", "interaction-smoke", "build-health", "manual-qa"],
+      "runtime_targets": ["http://localhost:3000", "Cloudflare preview URL when available"],
+      "evidence_required": ["command output", "request or response summary", "test output", "screenshot", "manual verification note"],
+      "allowed_discovery": "Use only files needed to fix acceptance defects or documentation gaps found in final validation.",
+      "test_commands": ["npm test", "npm run test:e2e", "npm run build"],
+      "manual_verification": [
+        "PM should complete a final walkthrough on the target device/browser and confirm seed data, alert wording, AI behavior, and deployment target."
+      ],
+      "pm_questions": [
+        "Confirm release acceptance or list blocking issues after the final walkthrough."
+      ],
+      "human_assistance": [
+        "Provide live credentials and final manual acceptance feedback if production services are in scope."
+      ],
+      "next_phase_inputs": [
+        "No further phase; release or backlog follow-up only."
+      ],
+      "agent_briefs": {
+        "master-developer": "Treat this as acceptance hardening only. Insert researcher or PM input only for real blockers, not late feature expansion.",
+        "developer": "Fix only release-blocking defects and documentation gaps revealed by acceptance validation.",
+        "tester": "Run the broadest validation of the workflow and clearly separate pass, fail, and manual-only evidence."
+      }
+    }
+  ]
+}

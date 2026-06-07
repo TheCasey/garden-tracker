@@ -1,0 +1,514 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&family=DM+Sans:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --sage:#3E5C3A;--sage-light:#5C7A56;--leaf:#7AAE72;
+  --harvest:#C8832A;--harvest-light:#E8A94A;
+  --alert-red:#A32D2D;--alert-amber:#854F0B;--info-blue:#185FA5;
+  --leaf-bg:#EAF3DE;--leaf-text:#27500A;--leaf-border:#97C459;
+  --amber-bg:#FAEEDA;--amber-text:#633806;--amber-border:#EF9F27;
+  --red-bg:#FCEBEB;--red-text:#791F1F;--red-border:#F09595;
+  --blue-bg:#E6F1FB;--blue-text:#0C447C;--blue-border:#85B7EB;
+  --ff-display:'Fraunces',serif;--ff-body:'DM Sans',sans-serif;--ff-mono:'DM Mono',monospace;
+}
+
+body{font-family:var(--ff-body);font-size:14px;background:var(--color-background-tertiary);color:var(--color-text-primary)}
+
+.app{width:100%;max-width:1100px;margin:0 auto}
+
+.topbar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;background:var(--color-background-primary);
+  border-bottom:0.5px solid var(--color-border-tertiary);
+  position:sticky;top:0;z-index:20
+}
+.logo{font-family:var(--ff-display);font-size:16px;font-weight:500;display:flex;align-items:center;gap:6px;flex:1}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--leaf)}
+.nav-tabs{display:flex;gap:2px;background:var(--color-background-secondary);border-radius:8px;padding:3px}
+.tab{font-size:12px;padding:4px 10px;border-radius:6px;border:none;background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:var(--ff-body);white-space:nowrap}
+.tab.on{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500}
+.wx{font-family:var(--ff-mono);font-size:11px;color:var(--color-text-secondary);white-space:nowrap;display:none}
+
+.alert-bar{
+  background:var(--amber-bg);border-bottom:0.5px solid var(--amber-border);
+  padding:7px 14px;display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--amber-text)
+}
+.alert-bar i{font-size:14px;color:var(--harvest);margin-top:1px;flex-shrink:0}
+
+.layout{display:flex;gap:0}
+
+.sidebar{
+  display:none;width:240px;flex-shrink:0;
+  border-right:0.5px solid var(--color-border-tertiary);
+  padding:12px 0;min-height:600px
+}
+.sb-section{padding:10px 14px 4px;font-family:var(--ff-mono);font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em}
+.sb-item{
+  display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;
+  border-left:2px solid transparent;font-size:13px;color:var(--color-text-secondary);transition:all .12s
+}
+.sb-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.sb-item.on{border-left-color:var(--leaf);color:var(--color-text-primary);background:var(--color-background-secondary);font-weight:500}
+.sb-item i{font-size:15px;width:18px;flex-shrink:0}
+.sb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-left:auto}
+.sb-dot.near{background:var(--harvest)}
+.sb-dot.fruit{background:var(--leaf)}
+.sb-dot.early{background:#378ADD}
+.sb-dot.stagnant{background:var(--color-border-secondary)}
+
+.main{flex:1;min-width:0;padding:0}
+
+.zone-hd{
+  display:flex;align-items:baseline;gap:8px;
+  padding:14px 14px 8px;border-bottom:0.5px solid var(--color-border-tertiary)
+}
+.zone-title{font-family:var(--ff-display);font-size:14px;font-weight:500}
+.zone-sub{font-family:var(--ff-mono);font-size:10px;color:var(--color-text-secondary)}
+
+.plant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 14px}
+.plant-grid.single{grid-template-columns:1fr}
+
+.pcard{
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:12px;padding:11px 12px;cursor:pointer;
+  transition:border-color .15s;position:relative;overflow:hidden
+}
+.pcard:hover{border-color:var(--color-border-secondary)}
+.pcard.sel{border-color:var(--sage-light);border-width:1px}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:12px 12px 0 0}
+.pcard.near::before{background:var(--harvest)}
+.pcard.fruit::before{background:var(--leaf)}
+.pcard.early::before{background:#378ADD}
+.pcard.stagnant::before{background:var(--color-border-secondary)}
+
+.prow{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);
+  border-radius:10px;cursor:pointer;transition:border-color .15s;
+  margin:0 14px 7px;position:relative;overflow:hidden
+}
+.prow::before{content:'';position:absolute;top:0;left:0;bottom:0;width:2.5px}
+.prow.near::before{background:var(--harvest)}
+.prow.fruit::before{background:var(--leaf)}
+.prow.early::before{background:#378ADD}
+.prow.stagnant::before{background:var(--color-border-secondary)}
+.prow:hover{border-color:var(--color-border-secondary)}
+
+.pname{font-family:var(--ff-display);font-size:13px;font-weight:500;line-height:1.2}
+.qty{font-family:var(--ff-mono);font-size:10px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:1px 5px;flex-shrink:0}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
+
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.pill{font-family:var(--ff-mono);font-size:10px;padding:2px 7px;border-radius:20px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);white-space:nowrap}
+.pill.g{background:var(--leaf-bg);border-color:var(--leaf-border);color:var(--leaf-text)}
+.pill.a{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber-text)}
+.pill.b{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue-text)}
+
+.qas{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.qa{font-size:11px;padding:4px 8px;border-radius:6px;border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:3px;font-family:var(--ff-body);white-space:nowrap;transition:all .12s}
+.qa:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.qa.done{background:var(--leaf-bg);border-color:var(--leaf-border);color:var(--leaf-text)}
+.qa i{font-size:12px}
+
+.chip{font-size:11px;padding:3px 7px;border-radius:5px;display:flex;align-items:center;gap:4px;line-height:1.3;margin-bottom:4px}
+.chip.w{background:var(--amber-bg);color:var(--amber-text);border:0.5px solid var(--amber-border)}
+.chip.d{background:var(--red-bg);color:var(--red-text);border:0.5px solid var(--red-border)}
+.chip.i{background:var(--blue-bg);color:var(--blue-text);border:0.5px solid var(--blue-border)}
+.chip i{font-size:11px;flex-shrink:0}
+
+.dryrow{display:flex;align-items:center;gap:6px;padding:0 14px 8px}
+.dry-lbl{font-size:10px;font-family:var(--ff-mono);color:var(--color-text-secondary);white-space:nowrap}
+.dry-track{flex:1;height:3px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden}
+.dry-fill{height:100%;border-radius:2px}
+.dry-fill.lo{background:var(--leaf)}
+.dry-fill.mid{background:var(--harvest)}
+.dry-fill.hi{background:#E24B4A}
+
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:10px 14px}
+
+.tasks{padding:12px 14px 20px}
+.tasks-hd{font-family:var(--ff-mono);font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.task{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:8px;background:var(--color-background-primary);margin-bottom:5px}
+.tc{width:15px;height:15px;border-radius:50%;border:0.5px solid var(--color-border-secondary);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.tc.on{background:var(--sage);border-color:var(--sage)}
+.tc.on i{font-size:8px;color:#fff}
+.tc i{font-size:8px;opacity:0}
+.tc.on i{opacity:1}
+.ttxt{font-size:12px;color:var(--color-text-secondary);line-height:1.4}
+.ttxt.done{text-decoration:line-through;color:var(--color-text-tertiary)}
+.tphase{font-family:var(--ff-mono);font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+
+.plant-detail{display:none;padding:0}
+
+.detail-hd{padding:14px 14px 10px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px}
+.back-btn{border:none;background:transparent;cursor:pointer;color:var(--color-text-secondary);padding:4px;border-radius:6px}
+.back-btn:hover{background:var(--color-background-secondary)}
+.detail-name{font-family:var(--ff-display);font-size:16px;font-weight:500;flex:1}
+.detail-sub{font-size:11px;font-family:var(--ff-mono);color:var(--color-text-secondary)}
+
+.ai-panel{margin:10px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden}
+.ai-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.ai-title{font-family:var(--ff-display);font-size:13px;font-weight:500}
+.ai-badge{font-size:10px;font-family:var(--ff-mono);background:var(--leaf-bg);color:var(--leaf-text);border:0.5px solid var(--leaf-border);border-radius:4px;padding:2px 6px}
+.msgs{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+.msg{display:flex;gap:7px;align-items:flex-start}
+.av{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;font-family:var(--ff-mono)}
+.av.u{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.av.ai{background:var(--leaf-bg);border:0.5px solid var(--leaf-border);color:var(--leaf-text)}
+.mbody{font-size:12px;line-height:1.5;color:var(--color-text-secondary);flex:1}
+.mbody strong{color:var(--color-text-primary);font-weight:500}
+.patch{background:var(--blue-bg);border:0.5px solid var(--blue-border);border-radius:7px;padding:7px 9px;margin-top:5px;font-family:var(--ff-mono);font-size:10.5px;color:var(--blue-text);line-height:1.6}
+.patch-lbl{font-size:10px;color:#378ADD;margin-bottom:3px;display:block}
+.ai-inp-row{padding:9px 12px;border-top:0.5px solid var(--color-border-tertiary);display:flex;gap:5px;align-items:center}
+.ai-inp{flex:1;font-size:12px;font-family:var(--ff-body);padding:6px 9px;border-radius:7px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-primary);outline:none}
+.ai-inp:focus{border-color:var(--sage-light)}
+.icn-btn{width:28px;height:28px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);transition:all .12s;flex-shrink:0}
+.icn-btn:hover{background:var(--color-background-secondary)}
+.send-btn{width:28px;height:28px;background:var(--sage);border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.send-btn:hover{background:var(--sage-light)}
+
+.care-grid{margin:10px 14px;border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden}
+.care-row{display:grid;border-bottom:0.5px solid var(--color-border-tertiary)}
+.care-row:last-child{border-bottom:none}
+.care-row.r3{grid-template-columns:repeat(3,1fr)}
+.care-row.r2{grid-template-columns:repeat(2,1fr)}
+.care-cell{padding:9px 12px;border-right:0.5px solid var(--color-border-tertiary)}
+.care-cell:last-child{border-right:none}
+.care-lbl{font-size:10px;font-family:var(--ff-mono);color:var(--color-text-secondary);margin-bottom:2px}
+.care-val{font-family:var(--ff-display);font-size:20px;font-weight:500}
+.care-unit{font-size:11px;font-weight:400;color:var(--color-text-secondary)}
+
+.ms-panel{margin:10px 14px 16px;border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden}
+.ms-hd{padding:8px 12px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-family:var(--ff-mono);font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.ms-item{display:flex;gap:9px;align-items:flex-start;padding:8px 12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.ms-item:last-child{border-bottom:none}
+.ms-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ms-text{font-size:12px;color:var(--color-text-secondary);line-height:1.4;flex:1}
+.ms-phase{font-family:var(--ff-mono);font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+
+@media(min-width:640px){
+  .sidebar{display:block}
+  .wx{display:flex;align-items:center;gap:4px}
+  .plant-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .plant-detail{display:block!important}
+  .detail-hd .back-btn{display:none}
+}
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Garden tracker dashboard with responsive layout for mobile and desktop</h2>
+
+<div class="app">
+
+<div class="topbar">
+  <div class="logo"><div class="logo-dot"></div>Garden Tracker</div>
+  <div class="nav-tabs">
+    <button class="tab on" onclick="showMain('dash')">Dashboard</button>
+    <button class="tab" onclick="showMain('plant')">Plant</button>
+    <button class="tab" onclick="showMain('tasks')">Tasks</button>
+  </div>
+  <div class="wx"><i class="ti ti-sun" aria-hidden="true"></i> 84°F · TN</div>
+</div>
+
+<div class="alert-bar">
+  <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+  <span><strong>Canopy zone active</strong> — All ground-plot fruit requires exhaustive wash cycles before consumption.</span>
+</div>
+
+<div class="layout">
+
+  <div class="sidebar">
+    <div class="sb-section">Ground Plot</div>
+    <div class="sb-item on" onclick="openPlant('cherry')"><i class="ti ti-plant-2" aria-hidden="true"></i> Cherry Tomatoes <div class="sb-dot near"></div></div>
+    <div class="sb-item" onclick="openPlant('brandywine')"><i class="ti ti-plant-2" aria-hidden="true"></i> Brandywine <div class="sb-dot fruit"></div></div>
+    <div class="sb-item" onclick="openPlant('beefsteak')"><i class="ti ti-plant-2" aria-hidden="true"></i> Beefsteak <div class="sb-dot fruit"></div></div>
+    <div class="sb-item" onclick="openPlant('cucumber')"><i class="ti ti-plant-2" aria-hidden="true"></i> Cucumbers <div class="sb-dot fruit"></div></div>
+    <div class="sb-item" onclick="openPlant('squash')"><i class="ti ti-plant-2" aria-hidden="true"></i> Squash <div class="sb-dot fruit"></div></div>
+    <div class="sb-item" onclick="openPlant('beans')"><i class="ti ti-plant-2" aria-hidden="true"></i> Green Beans <div class="sb-dot fruit"></div></div>
+    <div class="sb-item" onclick="openPlant('cantaloupe')"><i class="ti ti-plant-2" aria-hidden="true"></i> Cantaloupe <div class="sb-dot early"></div></div>
+    <div class="sb-section" style="margin-top:8px">Container Zone</div>
+    <div class="sb-item" onclick="openPlant('blacktomato')"><i class="ti ti-box" aria-hidden="true"></i> Black Tomato <div class="sb-dot early"></div></div>
+    <div class="sb-item" onclick="openPlant('watermelon')"><i class="ti ti-box" aria-hidden="true"></i> Watermelon <div class="sb-dot early"></div></div>
+    <div class="sb-item" onclick="openPlant('peppers')"><i class="ti ti-box" aria-hidden="true"></i> Peppers <div class="sb-dot early"></div></div>
+    <div class="sb-item" onclick="openPlant('strawberry')"><i class="ti ti-box" aria-hidden="true"></i> Strawberry <div class="sb-dot stagnant"></div></div>
+  </div>
+
+  <div class="main">
+
+    <div id="view-dash">
+
+      <div class="zone-hd">
+        <span class="zone-title">Ground Plot</span>
+        <span class="zone-sub">7 plants · 6–7 hr sun · Bird-drop zone</span>
+      </div>
+
+      <div class="plant-grid">
+
+        <div class="pcard near" onclick="openPlant('cherry')">
+          <div class="card-top"><div class="pname">Cherry Tomatoes</div><div class="qty">×2</div></div>
+          <div class="pills"><div class="pill g">6 ft</div><div class="pill a">Near yield</div></div>
+          <div class="qas">
+            <button class="qa done" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i> Watered</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-basket" aria-hidden="true"></i> Harvest</button>
+          </div>
+          <div class="chip w"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Verify bamboo anchors — >5 ft</div>
+        </div>
+
+        <div class="pcard fruit" onclick="openPlant('brandywine')">
+          <div class="card-top"><div class="pname">Brandywine</div><div class="qty">×1</div></div>
+          <div class="pills"><div class="pill g">5 ft</div><div class="pill g">Fruiting</div></div>
+          <div class="qas">
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i> Water</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-note" aria-hidden="true"></i> Log</button>
+          </div>
+          <div class="chip w"><i class="ti ti-alert-triangle" aria-hidden="true"></i> T-post recommended</div>
+        </div>
+
+        <div class="pcard fruit" onclick="openPlant('beefsteak')">
+          <div class="card-top"><div class="pname">Beefsteak</div><div class="qty">×1</div></div>
+          <div class="pills"><div class="pill g">4.5 ft</div><div class="pill g">2 fruits</div></div>
+          <div class="qas">
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i> Water</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-note" aria-hidden="true"></i> Log</button>
+          </div>
+        </div>
+
+        <div class="pcard fruit" onclick="openPlant('cucumber')">
+          <div class="card-top"><div class="pname">Cucumbers</div><div class="qty">×2</div></div>
+          <div class="pills"><div class="pill b">Pollinating</div><div class="pill g">5 ft</div></div>
+          <div class="qas">
+            <button class="qa" id="cuc-poll" onclick="pollinate('cuc-poll',event)"><i class="ti ti-seeding" aria-hidden="true"></i> Pollinate</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i> Water</button>
+          </div>
+          <div class="chip i"><i class="ti ti-clock" aria-hidden="true"></i> 2 tracked · 5+ buds pending</div>
+        </div>
+
+        <div class="pcard fruit" onclick="openPlant('squash')">
+          <div class="card-top"><div class="pname">Squash</div><div class="qty">×1</div></div>
+          <div class="pills"><div class="pill g">Fruiting</div><div class="pill a">1 harvested</div></div>
+          <div class="qas">
+            <button class="qa" id="sq-poll" onclick="pollinate('sq-poll',event)"><i class="ti ti-seeding" aria-hidden="true"></i> Pollinate</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-basket" aria-hidden="true"></i> Harvest</button>
+          </div>
+          <div class="chip i"><i class="ti ti-leaf" aria-hidden="true"></i> 5–6 baby fruits</div>
+        </div>
+
+        <div class="pcard fruit" onclick="openPlant('beans')">
+          <div class="card-top"><div class="pname">Green Beans</div></div>
+          <div class="pills"><div class="pill g">High yield</div><div class="pill a">20–25 picked</div></div>
+          <div class="qas">
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-basket" aria-hidden="true"></i> Harvest</button>
+            <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i> Water</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="prow early" onclick="openPlant('cantaloupe')">
+        <div style="flex:1"><div class="pname">Cantaloupe</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;font-family:var(--ff-mono)">Blooming · 8–10 hr sun · Awaiting fruit set</div></div>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i></button>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-note" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="zone-hd">
+        <span class="zone-title">Container Zone</span>
+        <span class="zone-sub">Accelerated dryout monitoring</span>
+      </div>
+
+      <div class="prow early" onclick="openPlant('blacktomato')">
+        <div style="flex:1"><div class="pname">Black Tomato</div></div>
+        <div class="pills" style="margin:0"><div class="pill b">1 ft · Bloom</div></div>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-sun" aria-hidden="true"></i></button>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i></button>
+      </div>
+      <div class="dryrow"><span class="dry-lbl">Moisture</span><div class="dry-track"><div class="dry-fill mid" style="width:52%"></div></div><span class="dry-lbl" style="color:var(--harvest)">~18 hrs</span></div>
+
+      <div class="prow early" onclick="openPlant('watermelon')">
+        <div style="flex:1"><div class="pname">Watermelon</div></div>
+        <div class="pills" style="margin:0"><div class="pill b">6 in · Veg</div></div>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i></button>
+      </div>
+      <div class="dryrow"><span class="dry-lbl">Moisture</span><div class="dry-track"><div class="dry-fill hi" style="width:84%"></div></div><span class="dry-lbl" style="color:#A32D2D">Water now</span></div>
+
+      <div class="prow early" onclick="openPlant('peppers')">
+        <div style="flex:1"><div class="pname">Peppers</div></div>
+        <div class="pills" style="margin:0"><div class="pill b">3–4 in · Seedling</div><div class="qty">×2</div></div>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i></button>
+      </div>
+      <div class="dryrow"><span class="dry-lbl">Moisture</span><div class="dry-track"><div class="dry-fill lo" style="width:30%"></div></div><span class="dry-lbl">Adequate</span></div>
+
+      <div class="prow stagnant" onclick="openPlant('strawberry')">
+        <div style="flex:1"><div class="pname">Strawberry</div><div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;font-family:var(--ff-mono)">Isolated · Fire pit moat</div></div>
+        <button class="qa" onclick="event.stopPropagation()"><i class="ti ti-droplet" aria-hidden="true"></i></button>
+      </div>
+      <div class="dryrow"><span class="dry-lbl">Moisture</span><div class="dry-track"><div class="dry-fill lo" style="width:38%"></div></div><span class="dry-lbl">Adequate</span></div>
+
+    </div>
+
+    <div id="view-tasks" style="display:none">
+      <div class="zone-hd"><span class="zone-title">Active tasks</span></div>
+      <div class="tasks">
+        <div class="task">
+          <div class="tc" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt">Pollination tracker UI — squash & cucumber "Manually Pollinated" state + 72-hr fruit-drop check</div><div class="tphase">HIGH · Pollination Tracker</div></div>
+        </div>
+        <div class="task">
+          <div class="tc" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt">Black Tomato bloom milestone — toggle triggers morning toothbrush pollination tip</div><div class="tphase">HIGH · Bloom Monitor</div></div>
+        </div>
+        <div class="task">
+          <div class="tc on" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt done">Harvest hygiene alert banner — injected across all ground-plot plant profiles</div><div class="tphase">HIGH · Hygiene System</div></div>
+        </div>
+        <div class="task">
+          <div class="tc" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt">Source T-posts for cherry tomato & brandywine (both >5 ft bamboo risk)</div><div class="tphase">MEDIUM · Staking Cycle</div></div>
+        </div>
+        <div class="task">
+          <div class="tc" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt">Train 3 ft and 1 ft cantaloupe vines into lower chicken-wire trellis layers</div><div class="tphase">MEDIUM · Trellis Training</div></div>
+        </div>
+        <div class="task">
+          <div class="tc" onclick="toggleTask(this)"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="ttxt">Cantaloupe hammock trigger — flag transition from "Baby Set" to "Active Sizing"</div><div class="tphase">LOW · Cantaloupe Hammock</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-plant" class="plant-detail">
+      <div class="detail-hd">
+        <button class="back-btn" onclick="goBack()" aria-label="Back"><i class="ti ti-arrow-left" style="font-size:18px" aria-hidden="true"></i></button>
+        <div>
+          <div class="detail-name" id="d-name">Cherry Tomatoes</div>
+          <div class="detail-sub" id="d-sub">Ground Plot · 6 ft · Near yield · ×2</div>
+        </div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-hd">
+          <div class="ai-title">Plant diagnostics</div>
+          <div class="ai-badge"><i class="ti ti-robot" aria-hidden="true"></i> AI</div>
+        </div>
+        <div class="msgs">
+          <div class="msg">
+            <div class="av u">C</div>
+            <div class="mbody">Leaf showing white spots — mildew or bird droppings?</div>
+          </div>
+          <div class="msg">
+            <div class="av ai"><i class="ti ti-leaf" style="font-size:11px" aria-hidden="true"></i></div>
+            <div class="mbody">
+              <strong>Bird dropping residue confirmed, not pathological.</strong> Irregular pattern and location match your canopy context. No fungal signature. Care cycles unchanged — increase pre-harvest scrub protocol.
+              <div class="patch">
+                <span class="patch-lbl">PATCH · target: cherry_tomatoes</span>
+                watering_interval_days_normal: 2 (no change)<br>
+                user_alert: "Double-rinse all fruit before consumption."
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ai-inp-row">
+          <button class="icn-btn" title="Upload photo"><i class="ti ti-photo" style="font-size:14px" aria-hidden="true"></i></button>
+          <input class="ai-inp" type="text" placeholder="Describe what you're seeing…" />
+          <button class="send-btn"><i class="ti ti-send" style="font-size:13px" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="care-grid">
+        <div class="care-row r3">
+          <div class="care-cell"><div class="care-lbl">Water (normal)</div><div class="care-val">2 <span class="care-unit">days</span></div></div>
+          <div class="care-cell"><div class="care-lbl">Water (dry)</div><div class="care-val">1 <span class="care-unit">day</span></div></div>
+          <div class="care-cell"><div class="care-lbl">Fertilize</div><div class="care-val">3 <span class="care-unit">wks</span></div></div>
+        </div>
+        <div class="care-row r2">
+          <div class="care-cell"><div class="care-lbl">Moisture depth</div><div class="care-val">3 <span class="care-unit">in</span></div></div>
+          <div class="care-cell"><div class="care-lbl">Days to maturity</div><div class="care-val">65 <span class="care-unit">days</span></div></div>
+        </div>
+      </div>
+
+      <div class="ms-panel">
+        <div class="ms-hd">AI milestones</div>
+        <div class="ms-item"><div class="ms-dot" style="background:var(--harvest)"></div><div><div class="ms-text">Avoid overhead watering once flowers open — splash disperses bird waste onto blossoms.</div><div class="ms-phase">Fruit Set</div></div></div>
+        <div class="ms-item"><div class="ms-dot" style="background:var(--leaf)"></div><div><div class="ms-text">Reduce nitrogen, increase potassium. Flush soil weekly given N-loading from canopy droppings.</div><div class="ms-phase">Ripening</div></div></div>
+        <div class="ms-item"><div class="ms-dot" style="background:#378ADD"></div><div><div class="ms-text">Final harvest by October. Pull vines; compost with leaf cover to neutralize nitrogen buildup.</div><div class="ms-phase">End of Season</div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const plantData={
+  cherry:{name:'Cherry Tomatoes',sub:'Ground Plot · 6 ft · Near yield · ×2'},
+  brandywine:{name:'Brandywine Tomato',sub:'Ground Plot · 5 ft · Fruiting · ×1'},
+  beefsteak:{name:'Beefsteak Tomato',sub:'Ground Plot · 4.5 ft · 2 fruits · ×1'},
+  cucumber:{name:'Cucumbers',sub:'Ground Plot · 5 ft · Fruiting/Pollinating · ×2'},
+  squash:{name:'Squash',sub:'Ground Plot · Fruiting · 1 harvested'},
+  beans:{name:'Green Bean Bush',sub:'Ground Plot · High yield · 20–25 harvested'},
+  cantaloupe:{name:'Cantaloupe',sub:'High-sun zone · Blooming · Awaiting fruit set'},
+  blacktomato:{name:'Black Tomato',sub:'Container · 1 ft · Bloom phase'},
+  watermelon:{name:'Watermelon',sub:'Container · 6 in · Vegetative'},
+  peppers:{name:'Peppers',sub:'Container · 3–4 in · Seedling · ×2'},
+  strawberry:{name:'Strawberry',sub:'Container · Stagnant · Isolated on fire pit'}
+};
+
+let currentMain='dash';
+
+function showMain(v){
+  currentMain=v;
+  ['dash','tasks','plant'].forEach(id=>{
+    const el=document.getElementById('view-'+id);
+    if(el) el.style.display=id===v?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('on',['dash','plant','tasks'][i]===v);
+  });
+}
+
+function openPlant(key){
+  const d=plantData[key];
+  if(!d) return;
+  document.getElementById('d-name').textContent=d.name;
+  document.getElementById('d-sub').textContent=d.sub;
+  document.querySelectorAll('.sb-item').forEach(el=>{
+    el.classList.toggle('on',el.getAttribute('onclick')==="openPlant('"+key+"')");
+  });
+  const isMobile=window.innerWidth<640;
+  if(isMobile){
+    showMain('plant');
+  } else {
+    const pv=document.getElementById('view-plant');
+    pv.style.display='block';
+  }
+}
+
+function goBack(){
+  showMain('dash');
+}
+
+function toggleTask(el){
+  el.classList.toggle('on');
+  const t=el.closest('.task').querySelector('.ttxt');
+  t.classList.toggle('done',el.classList.contains('on'));
+}
+
+function pollinate(btnId,e){
+  e.stopPropagation();
+  const btn=document.getElementById(btnId);
+  btn.classList.add('done');
+  btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Logged';
+  const card=btn.closest('.pcard');
+  if(card){
+    const chip=document.createElement('div');
+    chip.className='chip i';
+    chip.innerHTML='<i class="ti ti-clock" aria-hidden="true"></i> 72-hr check armed';
+    card.appendChild(chip);
+  }
+}
+
+showMain('dash');
+</script>
