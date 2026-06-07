@@ -17,8 +17,8 @@ Create the Garden Tracker application from the existing product specification, d
 
 | Phase | Downstream Roles | Validation Modes | Depends On | Status |
 | --- | --- | --- | --- | --- |
-| [Phase 1: Source Control, GitHub, and Operations Setup](phases/phase-01-source-control-github-and-operations-setup/phase.md) | `developer -> tester` | `code-review`, `build-health`, `manual-qa` | None | `ready_for_master_developer` |
-| [Phase 2: Stack and Project Foundation](phases/phase-02-stack-and-project-foundation/phase.md) | `developer -> tester` | `build-health`, `unit-regression`, `browser-smoke` | Phase 1: Source Control, GitHub, and Operations Setup | `pending` |
+| [Phase 1: Source Control, GitHub, and Operations Setup](phases/phase-01-source-control-github-and-operations-setup/phase.md) | `developer -> tester` | `code-review`, `build-health`, `manual-qa` | None | `completed` |
+| [Phase 2: Stack and Project Foundation](phases/phase-02-stack-and-project-foundation/phase.md) | `developer -> tester` | `build-health`, `unit-regression`, `browser-smoke` | Phase 1: Source Control, GitHub, and Operations Setup | `blocked` |
 | [Phase 3: Domain Model, Seed Data, and Deterministic Engine](phases/phase-03-domain-model-seed-data-and-deterministic-engine/phase.md) | `developer -> tester` | `unit-regression`, `build-health` | Phase 2: Stack and Project Foundation | `pending` |
 | [Phase 4: Local Persistence and Repository Contract](phases/phase-04-local-persistence-and-repository-contract/phase.md) | `developer -> tester` | `unit-regression`, `build-health` | Phase 3: Domain Model, Seed Data, and Deterministic Engine | `pending` |
 | [Phase 5: Design System and App Shell UI](phases/phase-05-design-system-and-app-shell-ui/phase.md) | `developer -> tester` | `browser-smoke`, `interaction-smoke`, `build-health` | Phase 4: Local Persistence and Repository Contract | `pending` |
