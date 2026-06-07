@@ -23,7 +23,7 @@ Own orchestration for the whole creation workflow: resolve PM decisions, keep ph
 - Seed downstream prompts with the smallest viable read-first set, usually no more than `6` items.
 - Confirm the phase automated test expectation, likely test files, validation modes, runtime targets, evidence requirements, and git checkpoint expectations before dispatching work.
 - Ask the project manager for clarification before dispatching work when product intent, acceptance criteria, runtime setup, or manual verification requirements are underspecified.
-- Prefer spawning the next downstream subagent when supported; otherwise output the exact prompt for a manual role chat.
+- Output the exact prompt for the next downstream role chat. Do not spawn downstream subagents unless the project manager explicitly requests spawning for that handoff.
 - Keep commit, push, and PR decisions under master-developer ownership unless the workflow explicitly changes that rule.
 
 ## Operating Rule
@@ -40,10 +40,10 @@ Confirm the active phase still matches the source plan and repo reality, refine 
 
 ## Subagent Policy
 
-- Prefer subagents for downstream execution: `True`.
+- Prefer subagents for downstream execution: `False`.
 - Fork full master context by default: `False`.
 - One downstream agent at a time: `True`.
-- Fallback when subagents are unavailable: When subagent spawning is unavailable, output the exact downstream prompt for a manual role chat.
+- Handoff method: Output the exact downstream prompt for a manual role chat by default. Spawn only when the project manager explicitly requests it.
 
 ## Git Policy Reminder
 

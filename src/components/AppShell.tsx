@@ -5,6 +5,7 @@ import { createBrowserPersistenceStorage } from '../lib/persistence';
 import { createLocalGardenRepository } from '../repositories';
 import { AlertBanner } from './AlertBanner';
 import { Dashboard } from './Dashboard';
+import { PlantDetail } from './PlantDetail';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
@@ -86,6 +87,10 @@ export function AppShell() {
     setActiveView('plant');
   };
 
+  const returnToDashboard = () => {
+    setActiveView('dashboard');
+  };
+
   return (
     <div className="app-shell">
       <header className="topbar" role="banner">
@@ -128,58 +133,19 @@ export function AppShell() {
                 onOpenPlant={openPlant}
               />
             ) : null}
-            {activeView === 'plant' ? <PlantPlaceholder plant={selectedPlant} /> : null}
+            {activeView === 'plant' ? (
+              <PlantDetail
+                plant={selectedPlant}
+                zones={gardenSeedSnapshot.zones}
+                sunlightProfiles={gardenSeedSnapshot.sunlightProfiles}
+                logs={gardenSeedSnapshot.logs}
+                onBack={returnToDashboard}
+              />
+            ) : null}
             {activeView === 'tasks' ? <TasksPlaceholder /> : null}
           </section>
         </main>
       </div>
-    </div>
-  );
-}
-
-function PlantPlaceholder({ plant }: { plant: GardenPlant | null }) {
-  if (!plant) {
-    return (
-      <section className="placeholder-band">
-        <p className="placeholder-copy">No plant selected.</p>
-      </section>
-    );
-  }
-
-  const zone = gardenSeedSnapshot.zones.find((item) => item.id === plant.zoneId);
-  const leadNote = plant.notes[0] ?? 'Plant detail content is reserved for a later phase.';
-
-  return (
-    <div className="placeholder-stack">
-      <section className="placeholder-band" aria-labelledby="plant-placeholder-heading">
-        <div className="placeholder-header">
-          <div>
-            <h2 id="plant-placeholder-heading" className="zone-title">
-              {plant.name}
-            </h2>
-            <p className="zone-meta">
-              {zone?.label ?? 'Garden'} · {plant.heights.display} · {plant.growthStage}
-            </p>
-          </div>
-          <span className="inline-badge">x{plant.quantity}</span>
-        </div>
-        <p className="placeholder-copy">{leadNote}</p>
-      </section>
-
-      <section className="placeholder-band" aria-labelledby="plant-shell-heading">
-        <div className="placeholder-header">
-          <h2 id="plant-shell-heading" className="zone-title">
-            Detail shell
-          </h2>
-          <span className={`status-accent status-accent-${STATUS_TONE_MAP[plant.status]}`}>
-            {plant.status.replaceAll('-', ' ')}
-          </span>
-        </div>
-        <p className="placeholder-copy">
-          Care rules, AI diagnostics, log composition, and persistence controls are intentionally
-          deferred. This phase only establishes the responsive shell and navigation landmarks.
-        </p>
-      </section>
     </div>
   );
 }

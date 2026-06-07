@@ -23,8 +23,8 @@ Create the Garden Tracker application from the existing product specification, d
 | [Phase 4: Local Persistence and Repository Contract](phases/phase-04-local-persistence-and-repository-contract/phase.md) | `developer -> tester` | `unit-regression`, `build-health` | Phase 3: Domain Model, Seed Data, and Deterministic Engine | `completed` |
 | [Phase 5: Design System and App Shell UI](phases/phase-05-design-system-and-app-shell-ui/phase.md) | `developer -> tester` | `browser-smoke`, `interaction-smoke`, `build-health` | Phase 4: Local Persistence and Repository Contract | `completed` |
 | [Phase 6: Dashboard Plant Matrix and Container Zone](phases/phase-06-dashboard-plant-matrix-and-container-zone/phase.md) | `developer -> tester` | `browser-smoke`, `interaction-smoke`, `unit-regression` | Phase 5: Design System and App Shell UI | `completed` |
-| [Phase 7: Plant Detail Care Metrics and Milestones](phases/phase-07-plant-detail-care-metrics-and-milestones/phase.md) | `developer -> tester` | `browser-smoke`, `interaction-smoke`, `build-health` | Phase 6: Dashboard Plant Matrix and Container Zone | `ready_for_master_developer` |
-| [Phase 8: Routine Log Mutations and Task State](phases/phase-08-routine-log-mutations-and-task-state/phase.md) | `developer -> tester` | `interaction-smoke`, `unit-regression`, `browser-smoke` | Phase 7: Plant Detail Care Metrics and Milestones | `pending` |
+| [Phase 7: Plant Detail Care Metrics and Milestones](phases/phase-07-plant-detail-care-metrics-and-milestones/phase.md) | `developer -> tester` | `browser-smoke`, `interaction-smoke`, `build-health` | Phase 6: Dashboard Plant Matrix and Container Zone | `completed` |
+| [Phase 8: Routine Log Mutations and Task State](phases/phase-08-routine-log-mutations-and-task-state/phase.md) | `developer -> tester` | `interaction-smoke`, `unit-regression`, `browser-smoke` | Phase 7: Plant Detail Care Metrics and Milestones | `ready_for_master_developer` |
 | [Phase 9: High-Priority Garden Workflows](phases/phase-09-high-priority-garden-workflows/phase.md) | `developer -> tester` | `unit-regression`, `interaction-smoke`, `browser-smoke` | Phase 8: Routine Log Mutations and Task State | `pending` |
 | [Phase 10: Medium and Seasonal Alert Cycles](phases/phase-10-medium-and-seasonal-alert-cycles/phase.md) | `developer -> tester` | `unit-regression`, `interaction-smoke`, `build-health` | Phase 9: High-Priority Garden Workflows | `pending` |
 | [Phase 11: Gemini Care Metadata Onboarding](phases/phase-11-gemini-care-metadata-onboarding/phase.md) | `developer -> tester` | `unit-regression`, `api-smoke`, `build-health` | Phase 10: Medium and Seasonal Alert Cycles | `pending` |
@@ -48,20 +48,20 @@ Create the Garden Tracker application from the existing product specification, d
 - If a simulator, physical device, account, credential, service, fixture, or human-only check blocks validation, ask for project manager assistance instead of treating the phase as conclusively failed.
 - Record project manager answers and manual-assist results in the active `run-log.md`; update the phase brief or workflow state when the answer changes durable scope.
 
-## Subagent Dispatch
+## Manual Agent Prompt Handoff
 
-- Prefer subagents for downstream `developer`, `tester`, and bounded `researcher` work when the environment supports them.
-- Spawn one downstream agent at a time for the active phase unless a bounded researcher task can run independently.
-- When spawning a subagent, set its model and reasoning effort from the workflow model policy unless an escalation rule applies.
-- Do not fork the full master-developer chat context by default. Send compact prompts that reference workflow files and the active read-first packet.
-- If subagents are unavailable, output the exact downstream prompt so the project manager can start a manual role chat.
+- Do not spawn downstream subagents by default.
+- `master-developer` should write exactly one downstream prompt at a time for the project manager to start manually in a new role chat.
+- Keep manual downstream prompts compact and reference workflow files plus the active read-first packet instead of copying broad context.
+- The prompt should name the intended role, model, and reasoning effort from the workflow model policy unless an escalation rule applies.
+- If the project manager explicitly asks the master-developer to spawn a subagent for a specific handoff, follow the one-downstream-agent-at-a-time rule.
 
 | Role | Default Model | Reasoning Effort |
 | --- | --- | --- |
 | `master-developer` | `gpt-5.5` | `xhigh` |
-| `developer` | `gpt-5.4` | `high` |
-| `tester` | `gpt-5.4` | `high` |
-| `researcher` | `gpt-5.4` | `high` |
+| `developer` | `gpt-5.4` | `medium` |
+| `tester` | `gpt-5.4` | `medium` |
+| `researcher` | `gpt-5.4` | `medium` |
 
 Escalation rules:
 
