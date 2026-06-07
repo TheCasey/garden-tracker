@@ -11,6 +11,8 @@ build/
 .wrangler/
 .turbo/
 coverage/
+test-results/
+playwright-report/
 
 *.log
 npm-debug.log*

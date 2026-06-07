@@ -4,7 +4,7 @@ Garden Tracker is a custom backyard garden tracking app for a Columbia, TN garde
 
 ## Current Phase
 
-Phase 1 establishes source control, GitHub operations, CI placeholders, PR expectations, and secret handling before application code is scaffolded.
+Phase 2 establishes the runnable Vite + React + TypeScript application foundation, local scripts, test harnesses, and the initial environment contract.
 
 ## Repository Workflow
 
@@ -18,10 +18,22 @@ Phase 1 establishes source control, GitHub operations, CI placeholders, PR expec
 ## Local Setup
 
 1. Copy `.env.example` to `.env`.
-2. Fill only local development secrets in `.env`.
-3. Do not commit `.env`, `.env.*`, local swap files, build output, or dependency folders.
+2. Keep `APP_*` values present for the browser shell. Keep secrets populated only in `.env` and never in source control.
+3. Install dependencies with `npm install`.
+4. Start the app with `npm run dev` and open [http://localhost:3000](http://localhost:3000).
 
-Application install/build/test commands will be added in Phase 2 when the framework scaffold is created.
+## Commands
+
+- `npm run dev` starts the Vite development server on port `3000`.
+- `npm run build` runs TypeScript project builds and produces the Vite bundle.
+- `npm run lint` runs ESLint across the scaffold.
+- `npm test` runs Vitest unit tests.
+- `npm run test:e2e` runs the Playwright browser smoke test and starts Vite through Playwright `webServer`.
+
+## Environment Contract
+
+- Phase 2 validates the public browser runtime contract from `APP_*` values and keeps rendering with safe fallback values so smoke tests are not blocked by an incomplete `.env`.
+- Secrets such as `AUTH_SECRET`, `SESSION_SECRET`, `GEMINI_API_KEY`, and backend service keys remain server-only contract entries for later phases and are intentionally not loaded into the Vite client runtime.
 
 ## Workflow Files
 
