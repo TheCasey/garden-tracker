@@ -21,14 +21,17 @@ Wire deterministic quick actions and task checkboxes to repository mutations wit
 ## Deliverables
 
 - Functional routine mutation controls
+- Harvest flow requiring count input before saving
 - Inline or modal log-entry flow
 - Task view persisted from the backlog state
 - Tests for instant deterministic updates
 
 ## Files Or Areas To Touch
 
-- src/views/Dashboard.*
-- src/views/Tasks.*
+- src/components/AppShell.*
+- src/components/Dashboard.*
+- src/components/PlantCard.*
+- src/components/PlantRow.*
 - src/components/QuickActionButton.*
 - src/components/TaskCheckbox.*
 - src/repositories/
@@ -40,13 +43,13 @@ Wire deterministic quick actions and task checkboxes to repository mutations wit
 - 02-component-library.md
 - src/repositories/
 - src/domain/
-- src/views/
+- src/components/
 - tests/ui/routine-actions.spec.*
 
 ## Exit Criteria
 
 - Watering writes a Watering log, updates the next-water state, and marks the control done.
-- Harvest increments total_harvest_count and writes a garden log without invoking AI.
+- Harvest requires count input, increments total_harvest_count by the entered count, and writes a garden log without invoking AI.
 - Task checkbox state persists across reloads.
 - Inline note entry writes a garden log for the active plant.
 
@@ -62,7 +65,7 @@ Add interaction tests and repository tests covering routine mutations, reload pe
 ## Test Cases To Cover
 
 - Watering a plant adds a log and updates visible watering state instantly.
-- Harvesting Green Beans increments the harvest count and persists after reload.
+- Harvesting Green Beans requires count input, increments the harvest count by the entered count, and persists after reload.
 - Task checkbox toggles both visual state and persisted state.
 - Routine actions do not call the Gemini endpoint.
 
@@ -102,7 +105,7 @@ Inspect action handlers, repository methods, and task view files only as needed.
 
 ## Project Manager Questions
 
-- Confirm whether harvest entries should require a count/weight input immediately or allow one-tap default logging first.
+- Answered 2026-06-07: harvest entries must require count input before saving. Weight input is not required for Phase 8 unless already trivial in the local UI, and one-tap default harvest logging should not be the Phase 8 behavior.
 
 ## Human Assistance Triggers
 

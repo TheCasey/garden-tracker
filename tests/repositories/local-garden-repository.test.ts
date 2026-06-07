@@ -21,9 +21,11 @@ describe('local garden repository', () => {
     });
 
     const rehydratedRepository = createLocalGardenRepository({ storage });
+    const rehydratedPlant = await rehydratedRepository.getPlantById('cherry-tomatoes');
     const cherryLogs = await rehydratedRepository.listGardenLogs('cherry-tomatoes');
     const unrelatedLogs = await rehydratedRepository.listGardenLogs('black-tomato');
 
+    expect(rehydratedPlant?.currentMetrics.lastWateredAt).toBe('2026-06-06T19:00:00-05:00');
     expect(cherryLogs.at(-1)).toMatchObject({
       plantId: 'cherry-tomatoes',
       type: 'watering',
@@ -64,6 +66,16 @@ describe('local garden repository', () => {
       type: 'harvest',
       detail: 'Quick evening harvest pass.',
     });
+
+    await expect(
+      rehydratedRepository.recordHarvest({
+        plantId: 'green-bean-bush',
+        harvestedCount: 0,
+        occurredAt: '2026-06-06T18:20:00-05:00',
+        metric: '0 beans',
+        detail: 'Invalid empty harvest.',
+      }),
+    ).rejects.toThrow('harvestedCount must be a positive integer.');
   });
 
   it('persists task checkbox state under garden_tasks_state', async () => {

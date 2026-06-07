@@ -166,6 +166,19 @@ class LocalGardenRepository implements GardenRepository {
       };
 
       state.logs.push(log);
+      if (input.type === 'watering') {
+        state.plants = state.plants.map((plant) =>
+          plant.id === input.plantId
+            ? {
+                ...plant,
+                currentMetrics: {
+                  ...plant.currentMetrics,
+                  lastWateredAt: input.occurredAt,
+                },
+              }
+            : plant,
+        );
+      }
       this.saveState(state);
 
       return cloneValue(log);
@@ -174,6 +187,10 @@ class LocalGardenRepository implements GardenRepository {
 
   recordHarvest(input: RecordHarvestInput): Promise<HarvestMutationResult> {
     return this.execute(() => {
+      if (!Number.isInteger(input.harvestedCount) || input.harvestedCount <= 0) {
+        throw new RangeError('harvestedCount must be a positive integer.');
+      }
+
       const state = this.loadState();
       const plant = this.getRequiredPlant(state.plants, input.plantId);
 

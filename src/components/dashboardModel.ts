@@ -134,7 +134,7 @@ export function getPlantCardPills(plant: GardenPlant): DashboardStatPillModel[] 
     case 'green-bean-bush':
       return [
         { label: 'High yield', tone: 'g' },
-        { label: plant.currentMetrics.recentHarvestCountRange?.display ?? 'Picked', tone: 'a' },
+        { label: `${plant.currentMetrics.totalHarvestCount} harvested`, tone: 'a' },
       ];
     default:
       return [{ label: formatStatusLabel(plant), tone: 'b' }];
@@ -149,23 +149,41 @@ export function getPlantRowPills(plant: GardenPlant): DashboardStatPillModel[] {
   return [{ label: formatStatusLabel(plant), tone: 'b' }];
 }
 
-export function getQuickActions(plant: GardenPlant): readonly DashboardQuickActionModel[] {
+export function getQuickActions(
+  plant: GardenPlant,
+  logs: readonly GardenLog[] = [],
+): readonly DashboardQuickActionModel[] {
+  const waterAction = (
+    label: string,
+    options?: Pick<DashboardQuickActionModel, 'iconOnly'>,
+  ): DashboardQuickActionModel => {
+    const wateredToday = isWateredToday(plant, logs);
+
+    return {
+      id: 'water',
+      label: wateredToday ? 'Watered' : label,
+      iconClass: 'ti ti-droplet',
+      done: wateredToday,
+      ...options,
+    };
+  };
+
   switch (plant.id) {
     case 'cherry-tomatoes':
       return [
-        { id: 'water', label: 'Watered', iconClass: 'ti ti-droplet', done: true },
+        { ...waterAction('Watered'), done: true, label: 'Watered' },
         { id: 'harvest', label: 'Harvest', iconClass: 'ti ti-basket' },
       ];
     case 'brandywine-tomato':
     case 'beefsteak-tomato':
       return [
-        { id: 'water', label: 'Water', iconClass: 'ti ti-droplet' },
+        waterAction('Water'),
         { id: 'log', label: 'Log', iconClass: 'ti ti-note' },
       ];
     case 'cucumbers':
       return [
         { id: 'pollinate', label: 'Pollinate', iconClass: 'ti ti-seeding' },
-        { id: 'water', label: 'Water', iconClass: 'ti ti-droplet' },
+        waterAction('Water'),
       ];
     case 'squash':
       return [
@@ -175,21 +193,39 @@ export function getQuickActions(plant: GardenPlant): readonly DashboardQuickActi
     case 'green-bean-bush':
       return [
         { id: 'harvest', label: 'Harvest', iconClass: 'ti ti-basket' },
-        { id: 'water', label: 'Water', iconClass: 'ti ti-droplet' },
+        waterAction('Water'),
       ];
     case 'cantaloupe':
       return [
-        { id: 'water', label: 'Log watering', iconClass: 'ti ti-droplet', iconOnly: true },
+        waterAction('Log watering', { iconOnly: true }),
         { id: 'log', label: 'Add log entry', iconClass: 'ti ti-note', iconOnly: true },
       ];
     case 'black-tomato':
       return [
         { id: 'sun', label: 'Sun exposure note', iconClass: 'ti ti-sun', iconOnly: true },
-        { id: 'water', label: 'Log watering', iconClass: 'ti ti-droplet', iconOnly: true },
+        waterAction('Log watering', { iconOnly: true }),
       ];
     default:
-      return [{ id: 'water', label: 'Log watering', iconClass: 'ti ti-droplet', iconOnly: true }];
+      return [waterAction('Log watering', { iconOnly: true })];
   }
+}
+
+function isWateredToday(plant: GardenPlant, logs: readonly GardenLog[]): boolean {
+  const latestWateringLog = getLatestLogByType(logs, plant.id, 'watering');
+  const lastWateredAt = latestWateringLog?.occurredAt ?? plant.currentMetrics.lastWateredAt;
+
+  if (!lastWateredAt) {
+    return false;
+  }
+
+  const today = new Date();
+  const wateredAt = new Date(lastWateredAt);
+
+  return (
+    today.getFullYear() === wateredAt.getFullYear() &&
+    today.getMonth() === wateredAt.getMonth() &&
+    today.getDate() === wateredAt.getDate()
+  );
 }
 
 export function getPlantAlertChip(

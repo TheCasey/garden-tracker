@@ -3,6 +3,7 @@ import { MoistureDryoutBar } from './MoistureDryoutBar';
 import { PlantCard } from './PlantCard';
 import { PlantRow } from './PlantRow';
 import {
+  type QuickActionId,
   getContainerDryoutModel,
   getDashboardTone,
   getPlantAlertChip,
@@ -28,6 +29,7 @@ export function Dashboard({
   logs,
   selectedPlantId,
   onOpenPlant,
+  onQuickAction,
 }: {
   plants: readonly GardenPlant[];
   zones: readonly GardenZone[];
@@ -35,6 +37,7 @@ export function Dashboard({
   logs: readonly GardenLog[];
   selectedPlantId: string;
   onOpenPlant: (plantId: string) => void;
+  onQuickAction: (plantId: string, actionId: QuickActionId) => void;
 }) {
   const groundZone = zones.find((zone) => zone.id === 'ground-plot');
   const containerZone = zones.find((zone) => zone.id === 'container-zone');
@@ -67,9 +70,10 @@ export function Dashboard({
                 tone={getDashboardTone(plant.status)}
                 selected={plant.id === selectedPlantId}
                 pills={getPlantCardPills(plant)}
-                quickActions={getQuickActions(plant)}
+                quickActions={getQuickActions(plant, logs)}
                 alertChip={getPlantAlertChip(plant, logs)}
                 onOpen={() => onOpenPlant(plant.id)}
+                onQuickAction={(actionId) => onQuickAction(plant.id, actionId)}
               />
             ))}
           </div>
@@ -84,8 +88,9 @@ export function Dashboard({
                   tone={getDashboardTone(plant.status)}
                   selected={plant.id === selectedPlantId}
                   pills={getPlantRowPills(plant)}
-                  quickActions={getQuickActions(plant)}
+                  quickActions={getQuickActions(plant, logs)}
                   onOpen={() => onOpenPlant(plant.id)}
+                  onQuickAction={(actionId) => onQuickAction(plant.id, actionId)}
                 />
               </div>
             ))}
@@ -117,8 +122,9 @@ export function Dashboard({
                     tone={getDashboardTone(plant.status)}
                     selected={plant.id === selectedPlantId}
                     pills={getPlantRowPills(plant)}
-                    quickActions={getQuickActions(plant)}
+                    quickActions={getQuickActions(plant, logs)}
                     onOpen={() => onOpenPlant(plant.id)}
+                    onQuickAction={(actionId) => onQuickAction(plant.id, actionId)}
                   />
                   {dryout ? <MoistureDryoutBar plantId={plant.id} dryout={dryout} /> : null}
                 </div>
