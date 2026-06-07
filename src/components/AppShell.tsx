@@ -1,7 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { gardenSeedSnapshot } from '../data';
 import type { GardenPlant, PlantStatus, ZoneId } from '../domain';
+import { createBrowserPersistenceStorage } from '../lib/persistence';
+import { createLocalGardenRepository } from '../repositories';
 import { AlertBanner } from './AlertBanner';
+import { Dashboard } from './Dashboard';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 
@@ -36,24 +39,46 @@ const STATUS_TONE_MAP: Record<PlantStatus, ShellTone> = {
   'companion-blooming': 'early',
 };
 
-const plantsForSidebar: readonly SidebarPlant[] = gardenSeedSnapshot.plants.map((plant) => ({
-  id: plant.id,
-  name: plant.name,
-  quantity: plant.quantity,
-  zoneId: plant.zoneId,
-  statusTone: STATUS_TONE_MAP[plant.status],
-  iconClass: plant.zoneId === 'container-zone' ? 'ti ti-box' : 'ti ti-plant-2',
-}));
-
-const initialPlantId = plantsForSidebar[0]?.id ?? '';
-
 export function AppShell() {
+  const [plants, setPlants] = useState<readonly GardenPlant[]>(gardenSeedSnapshot.plants);
   const [activeView, setActiveView] = useState<ShellView>('dashboard');
-  const [selectedPlantId, setSelectedPlantId] = useState(initialPlantId);
+  const [selectedPlantId, setSelectedPlantId] = useState(gardenSeedSnapshot.plants[0]?.id ?? '');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const repository = createLocalGardenRepository({
+      storage: createBrowserPersistenceStorage(window.localStorage),
+    });
+
+    void repository.listPlants().then((nextPlants) => {
+      setPlants(nextPlants);
+      setSelectedPlantId((currentPlantId) =>
+        nextPlants.some((plant) => plant.id === currentPlantId)
+          ? currentPlantId
+          : (nextPlants[0]?.id ?? ''),
+      );
+    });
+  }, []);
+
+  const plantsForSidebar = useMemo<readonly SidebarPlant[]>(
+    () =>
+      plants.map((plant) => ({
+        id: plant.id,
+        name: plant.name,
+        quantity: plant.quantity,
+        zoneId: plant.zoneId,
+        statusTone: STATUS_TONE_MAP[plant.status],
+        iconClass: plant.zoneId === 'container-zone' ? 'ti ti-box' : 'ti ti-plant-2',
+      })),
+    [plants],
+  );
 
   const selectedPlant = useMemo(
-    () => gardenSeedSnapshot.plants.find((plant) => plant.id === selectedPlantId) ?? null,
-    [selectedPlantId],
+    () => plants.find((plant) => plant.id === selectedPlantId) ?? null,
+    [plants, selectedPlantId],
   );
 
   const openPlant = (plantId: string) => {
@@ -93,42 +118,21 @@ export function AppShell() {
               </p>
             </div>
 
-            {activeView === 'dashboard' ? <DashboardPlaceholder /> : null}
+            {activeView === 'dashboard' ? (
+              <Dashboard
+                plants={plants}
+                zones={gardenSeedSnapshot.zones}
+                sunlightProfiles={gardenSeedSnapshot.sunlightProfiles}
+                logs={gardenSeedSnapshot.logs}
+                selectedPlantId={selectedPlantId}
+                onOpenPlant={openPlant}
+              />
+            ) : null}
             {activeView === 'plant' ? <PlantPlaceholder plant={selectedPlant} /> : null}
             {activeView === 'tasks' ? <TasksPlaceholder /> : null}
           </section>
         </main>
       </div>
-    </div>
-  );
-}
-
-function DashboardPlaceholder() {
-  return (
-    <div className="placeholder-stack">
-      {gardenSeedSnapshot.zones.map((zone) => {
-        const plantsInZone = gardenSeedSnapshot.plants.filter((plant) => plant.zoneId === zone.id);
-
-        return (
-          <section key={zone.id} className="placeholder-band" aria-labelledby={`${zone.id}-heading`}>
-            <div className="placeholder-header">
-              <div>
-                <h2 id={`${zone.id}-heading`} className="zone-title">
-                  {zone.label}
-                </h2>
-                <p className="zone-meta">
-                  {plantsInZone.length} plants · {zone.dryoutRisk === 'accelerated' ? 'fast dry-down' : 'steady moisture'}
-                </p>
-              </div>
-              <span className="inline-badge">{zone.plantingStyle}</span>
-            </div>
-            <p className="placeholder-copy">
-              Shell placeholder only. Dashboard cards, metrics, and interaction flows stay out of
-              scope until later phases.
-            </p>
-          </section>
-        );
-      })}
     </div>
   );
 }

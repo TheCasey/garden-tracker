@@ -367,6 +367,7 @@ const seedPlants: readonly GardenPlant[] = [
     currentMetrics: {
       totalHarvestCount: 0,
       plantedLateByMonths: 1,
+      lastWateredAt: '2026-06-06T00:00:00-05:00',
     },
     notes: [
       'Planted 1 month late.',
@@ -394,6 +395,7 @@ const seedPlants: readonly GardenPlant[] = [
     currentMetrics: {
       totalHarvestCount: 0,
       plantedLateByMonths: 1,
+      lastWateredAt: '2026-06-05T21:00:00-05:00',
     },
     notes: [
       'Recently repotted out of the ground plot to correct a shallow root depth issue.',
@@ -420,6 +422,7 @@ const seedPlants: readonly GardenPlant[] = [
     currentMetrics: {
       totalHarvestCount: 0,
       plantedLateByMonths: 1,
+      lastWateredAt: '2026-06-06T04:00:00-05:00',
     },
     notes: [
       'Nested safely inside a protective pink clover-shaped multi-planter base unit.',
@@ -448,6 +451,7 @@ const seedPlants: readonly GardenPlant[] = [
     careRules: berryCareRules,
     currentMetrics: {
       totalHarvestCount: 0,
+      lastWateredAt: '2026-06-06T08:50:00-05:00',
     },
     notes: [
       'Placed dead-center on top of a covered backyard fire pit as a critter moat barrier.',

@@ -89,6 +89,7 @@ export interface PlantCareRules {
 
 export interface PlantCurrentMetrics {
   totalHarvestCount: number;
+  lastWateredAt?: string;
   developingFruitCount?: number;
   developingFruitCountRange?: NumericRange;
   manuallyPollinatedFruitCount?: number;

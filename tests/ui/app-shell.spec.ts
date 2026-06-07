@@ -35,7 +35,16 @@ test.describe('app-shell', () => {
     await dashboardTab.focus();
 
     const boxShadow = await dashboardTab.evaluate((element) => {
-      const view = element.ownerDocument.defaultView;
+      const typedElement = element as {
+        ownerDocument?: {
+          defaultView?: {
+            getComputedStyle: (target: unknown) => {
+              boxShadow?: string;
+            };
+          } | null;
+        };
+      };
+      const view = typedElement.ownerDocument?.defaultView;
       return view?.getComputedStyle(element).boxShadow ?? 'none';
     });
     expect(boxShadow).not.toBe('none');
